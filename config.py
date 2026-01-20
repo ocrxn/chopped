@@ -12,3 +12,6 @@ DATABASE = os.getenv('DB_TOKEN')
 
 #Neon DB
 DB_URL = os.getenv('DATABASE_URL')
+
+#Gmail
+MAIL_TOKEN = os.getenv('mail_token')

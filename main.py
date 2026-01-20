@@ -1,8 +1,8 @@
 import os
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from dotenv import load_dotenv
-
 from db_conn import Connection
+from email_verif import connect_smtp
 
 app = Flask(__name__)
 load_dotenv()
@@ -58,6 +58,10 @@ def signup():
             
         if cn.create_user(username, password):
             session["user"] = username   # store in session
+
+            #Send 2FA code to user email for verification
+            connect_smtp(username)
+            
             return redirect(url_for("home"))
 
 
