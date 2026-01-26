@@ -14,37 +14,34 @@ class Connection:
     def connect_db(self):
         return psycopg2.connect(DB_URL)
 
-    def query_db(self):
+    def update_status(self,query,username):
         try:
             conn = self.connect_db()
             exe = conn.cursor()
 
-            create_query = """ALTER TABLE users
-ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT FALSE;"""
-            exe.execute(create_query)
+            exe.execute(query,(username,))
             conn.commit()
         except psycopg2.Error as error:
-            print(f"An error has occurred: {error}")
+            print(f"update_status error has occurred: {error}")
         except Exception as e:
-            print(f"Exception has occurred: {e}")
+            print(f"update_status exception has occurred: {e}")
         finally:
-            print("Query successfully completed.")
             exe.close()
             conn.close()
         
-    def create_user(self, username, password):
+    def create_user(self, username, email, password):
         try:
             conn = self.connect_db()
             exe = conn.cursor()
 
             hashed_pass = bcrypt.hashpw(password.encode('utf-8'),bcrypt.gensalt())
-            exe.execute("INSERT INTO users (username,password) VALUES (%s,%s)", (username, hashed_pass))
+            exe.execute("INSERT INTO users (username,email,password) VALUES (%s,%s,%s)", (username, email,hashed_pass))
             conn.commit()
         except psycopg2.Error as error:
             print(f"An error has occurred. {error}")
             return False
         except Exception as e:
-            print(f"Exception has occurred: {e}")
+            print(f"Create User Exception has occurred: {e}")
             return False
         finally:
             exe.close()
@@ -68,14 +65,34 @@ ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT FALSE;"""
                 return True
             return False        
         except psycopg2.Error as error:
-            print("An error has occurred.")
+            print("An error has occurred: {error}")
+        except Exception as e:
+            print(f"Confirm User Exception has occurred: {e}")
+        finally:
+            exe.close()
+            conn.close()
+    
+    def query_db(self, query):
+        try:
+            conn = self.connect_db()
+            exe = conn.cursor()
+
+            
+            exe.execute(query)
+            conn.commit()
+        except psycopg2.Error as error:
+            print(f"An:1 error has occurred: {error}")
         except Exception as e:
             print(f"Exception has occurred: {e}")
         finally:
+            print("Query successfully completed.")
             exe.close()
             conn.close()
 
 
 
 c = Connection()
-c.query_db()
+if __name__ == "__main__":
+    c.query_db(query = """
+TRUNCATE TABLE public.users RESTART IDENTITY CASCADE;
+""")

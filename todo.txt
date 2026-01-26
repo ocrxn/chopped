@@ -3,7 +3,4 @@ Login Structure
         -Send code via SMTPlib
 
 Database Setup
-    -Add is_admin role
-        -whitelist functionality
-        -insert new column into db
     -Add is_active column in db

@@ -34,12 +34,16 @@ def login():
         #Call to db_conn.py to validate credentials
         cn = Connection()
         if cn.confirm_user(username, password):
-            session["user"] = username   # store in session
+            #Store user in session
+            session["user"] = username
+
+            #Set user status active in DB
+            cn.update_status("UPDATE public.users SET is_active=TRUE WHERE username=%s",username)
+            
             return redirect(url_for("home"))
         
         flash("Invalid username or password. Please try again.")
         return redirect(url_for("login"))
-
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -48,27 +52,45 @@ def signup():
     
     if request.method == "POST":
         username = request.form["username"]
+        email = request.form["email"]
         password = request.form["password"]
+        print(f"{username}\n{email}\n{password}")
 
-        #Call to db_conn.py to create new user
         cn = Connection()
+
+        #Check if user already exists
         if cn.confirm_user(username, password):
             flash("User already exists. Try logging in.")
             return redirect(url_for("login"))
-            
-        if cn.create_user(username, password):
-            session["user"] = username   # store in session
+        
+        #Create new user in DB if not exists
+        if cn.create_user(username, email, password):
+            #Store user in session
+            session["user"] = username
 
-            #Send 2FA code to user email for verification
-            connect_smtp(username)
+            #Set user status active in DB
+            cn.update_status("UPDATE public.users SET is_active=TRUE WHERE username=%s",username)
+
+            # #Send 2FA code to user email for verification
+            connect_smtp(username, email)
             
             return redirect(url_for("home"))
 
 
 @app.route("/logout")
 def logout():
-    session.pop("user", None)
-    return redirect(url_for("login"))
+    username = session.get("user")
+    if username:
+        #Remove user from session
+        session.pop("user", None)
+
+        #Set user status not active in DB
+        cn = Connection()
+        cn.update_status("UPDATE public.users SET is_active=FALSE WHERE username=%s",username)
+
+        return redirect(url_for("login"))
+    else:
+        flash("Internal server error: unable to locate session/user.")
 
 
 @app.route("/about")
