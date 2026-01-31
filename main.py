@@ -1,10 +1,11 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session, request, flash
+from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
 from dotenv import load_dotenv
 from db_conn import Connection
 from email_verif import connect_smtp
 from werkzeug.utils import secure_filename
 from config import UPLOAD_FOLDER
+import json
 
 app = Flask(__name__)
 load_dotenv()
@@ -33,13 +34,22 @@ def upload():
         return render_template("upload.html")
 
     if request.method == "POST":
-        file = request.files["upload_file"]
-        filename = secure_filename(file.filename)
-        print(f"Video uploaded: {filename}")
-
-        path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(path)
-        return redirect(url_for("home"))
+        try:
+            #Return Error if upload_file not found
+            if 'upload_file' not in request.files:
+                return jsonify({'Error':'File part not found.'})
+            
+            #Parse filename and turn into ASCII secure name
+            file = request.files["upload_file"]
+            filename = secure_filename(file.filename)
+            
+            #Join secure filename to path and save
+            path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(path)
+            return redirect(url_for("home"))
+        #Return error for empty submit
+        except FileNotFoundError:
+            return jsonify({'Error':'No file uploaded.'})
 
 
 @app.route("/login", methods=["GET", "POST"])
