@@ -1,22 +1,13 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>Flask Tutorial</title>
-  </head>
-  <body>
-    {% extends "template.html" %}
-    {% block content %}
+{% extends "template.html" %}
+{% block content %}
 
-    <h1> Upload Your File </h1>
-    <p> Current acceptable file formats: .mp4, .mov, .webm, .mkv</p>
-    <br>
+<h1> Upload Your File </h1>
+<p> Current acceptable file formats: .mp4, .mov, .webm, .mkv</p>
+<br>
 
-    <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
-      <input type="file" id="upload_file_id" name="upload_file" accept=".mp4,.mov,.webm,.mkv">
-      <input type="submit">
-    </form>
+<form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+  <input type="file" id="upload_file_id" name="upload_file" accept=".mp4,.mov,.webm,.mkv">
+  <input id="upload_button" type="submit">
+</form>
 
-    {% endblock %}
-  </body>
-</html>
+{% endblock %}

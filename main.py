@@ -4,12 +4,15 @@ from dotenv import load_dotenv
 from db_conn import Connection
 from email_verif import connect_smtp
 from werkzeug.utils import secure_filename
-from config import UPLOAD_FOLDER
+from config import UPLOAD_FOLDER, OUTPUT_FOLDER
 import json
 
 app = Flask(__name__)
 load_dotenv()
 app.secret_key = os.getenv('app_key')
+
+#Upload file parameters
+app.config['MAX_FILE_SIZE'] = 1024*1024 * 1024 #1 GB
 
 
 def require_login():
@@ -39,11 +42,13 @@ def upload():
             if 'upload_file' not in request.files:
                 return jsonify({'Error':'File part not found.'})
             
-            #Parse filename and turn into ASCII secure name
+            #Parse filename and convert to ASCII secure name
             file = request.files["upload_file"]
             filename = secure_filename(file.filename)
             
             #Join secure filename to path and save
+            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+            os.makedirs(OUTPUT_FOLDER, exist_ok=True)
             path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(path)
             return redirect(url_for("home"))

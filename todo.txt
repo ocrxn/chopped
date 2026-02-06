@@ -1,0 +1,18 @@
+**IMPORTANT**
+-Fix template structure (extends) in templates
+-Merge all the stylesheets into one for now 
+    -(expand classes and ids to match each page)
+
+
+
+
+FLASK
+--Serve video to user
+
+--Make uploads folder generic (aka. os.makedirs)
+
+--Add internal shutdown signal for flask application
+
+
+
+

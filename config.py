@@ -21,3 +21,4 @@ EMAIL_PORT = os.getenv('email_port')
 
 #Uploads
 UPLOAD_FOLDER = os.getenv('upload_folder')
+OUTPUT_FOLDER = os.getenv('output_folder')

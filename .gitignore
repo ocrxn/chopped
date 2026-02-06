@@ -5,3 +5,7 @@ __pycache__/
 *.pyc
 *.pyo
 venv/
+.venv
+/chopped_uploads/
+/chopped_streams/
+git_notes.txt
