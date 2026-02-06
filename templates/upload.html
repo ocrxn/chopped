@@ -4,7 +4,7 @@
 <h1> Upload Your File </h1>
 <p> Current acceptable file formats: .mp4, .mov, .webm, .mkv</p>
 <br>
-
+<h2>Max File Size: 1 MB</h2>
 <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
   <input type="file" id="upload_file_id" name="upload_file" accept=".mp4,.mov,.webm,.mkv">
   <input id="upload_button" type="submit">

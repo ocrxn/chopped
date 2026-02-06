@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify
+from flask import Flask, render_template, redirect, url_for, session, request, flash, jsonify, send_from_directory
 from dotenv import load_dotenv
 from db_conn import Connection
 from email_verif import connect_smtp
@@ -12,8 +12,12 @@ load_dotenv()
 app.secret_key = os.getenv('app_key')
 
 #Upload file parameters
-app.config['MAX_FILE_SIZE'] = 1024*1024 * 1024 #1 GB
+app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1 #1 MB
 
+
+@app.errorhandler(413)
+def max_file_size_exceeded(e):
+    return "File size exceeded!", 413
 
 def require_login():
     if "user" not in session:
@@ -39,7 +43,8 @@ def upload():
     if request.method == "POST":
         try:
             #Return Error if upload_file not found
-            if 'upload_file' not in request.files:
+            file = request.files.get('upload_file')
+            if not file or file.filename == "":
                 return jsonify({'Error':'File part not found.'})
             
             #Parse filename and convert to ASCII secure name
@@ -51,11 +56,25 @@ def upload():
             os.makedirs(OUTPUT_FOLDER, exist_ok=True)
             path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(path)
-            return redirect(url_for("home"))
+            return redirect(url_for("display", filename=filename))
         #Return error for empty submit
         except FileNotFoundError:
             return jsonify({'Error':'No file uploaded.'})
 
+
+#Return display.html
+@app.route("/display/<filename>")
+def display(filename):
+    is_logged_out = require_login()
+    if is_logged_out:
+        return is_logged_out
+    
+    return render_template("display.html",filename=filename)
+
+#Return uploaded video
+@app.route("/chopped_uploads/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

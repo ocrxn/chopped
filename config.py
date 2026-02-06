@@ -18,7 +18,9 @@ MAIL_TOKEN = os.getenv('mail_token')
 SENDER_EMAIL = os.getenv('sender_email')
 EMAIL_PORT = os.getenv('email_port')
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-#Uploads
-UPLOAD_FOLDER = os.getenv('upload_folder')
-OUTPUT_FOLDER = os.getenv('output_folder')
+#Uploads & output
+UPLOAD_FOLDER = os.path.join(BASE_DIR, os.getenv('upload_folder', 'upload_folder'))
+OUTPUT_FOLDER = os.path.join(BASE_DIR, os.getenv('output_folder', 'output_folder'))
+
