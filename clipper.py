@@ -22,15 +22,25 @@ def cut_clip(
     output_file.parent.mkdir(parents=True, exist_ok=True)
     
     command = [
-            "ffmpeg",
-            "-y",                   #overwrite output if it exists already
-            "-ss", str(start_time), #seek to the start time (seconds)
-            "-i", video_path,       #input video file
-            "-t", str(duration),     #how long clip should be
-            "-c:v", "libx264",      #encode video using H.264
-            "-c:a", "aac",          #encode audio using AAC
-            output_path,
-    ]
+    "ffmpeg",
+    "-y",
+    "-ss", str(start_time),
+    "-i", video_path,
+    "-t", str(duration),
+
+    # Make output very compatible
+    "-c:v", "libx264",
+    "-pix_fmt", "yuv420p",
+    "-profile:v", "main",
+    "-level", "4.0",
+
+    "-c:a", "aac",
+    "-b:a", "128k",
+    "-ar", "44100",
+
+    "-movflags", "+faststart",
+    output_path,
+]
 
     try:
         subprocess.run(command, check=True)
