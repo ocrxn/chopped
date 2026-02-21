@@ -10,8 +10,9 @@ class FileHandler():
         self.args = args
 
 
-    def compress_video(self, filename, args):
-        result = subprocess.run()
-    
     def compress_video(self):
+        result = subprocess.run(["ls", "-l"], capture_output=True,text=True)
+        return result.stdout
+
+    def compress_audio(self):
         pass

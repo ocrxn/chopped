@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from config import UPLOAD_FOLDER, OUTPUT_FOLDER
 import json
 import subprocess
+from file_handling import FileHandler
 
 
 app = Flask(__name__)
@@ -49,12 +50,15 @@ def upload():
             if not file or file.filename == "":
                 return jsonify({'Error':'File part not found.'})
             
-            #Parse filename and convert to ASCII secure name
+            #Parse filename and arguments
             filename = secure_filename(file.filename)
-
-            #Parse file arguments
             video_format = request.form.get("video_format")
-            
+            output_format = request.form.get("output_format")
+
+            #File Handler
+            fh = FileHandler("filename.mp4","/my_output_dir/",["arg1", "arg2"])
+            compress_video = fh.compress_video()
+            print(compress_video)
             
             #Join secure filename to path and save
             os.makedirs(UPLOAD_FOLDER, exist_ok=True)

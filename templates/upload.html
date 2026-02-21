@@ -6,8 +6,7 @@
 
 {% block content %}
 
-  <h1> Upload Your File </h1>
-  <p> Current acceptable file formats: .mp4, .mov, .webm, .mkv</p>
+  <h1> Upload your Video (and Audio) Files </h1>
   <br>
   <h2>Max File Size: 1 MB</h2>
 
@@ -15,13 +14,17 @@
     <div id="form_div">
 
       <div id="upload_div">
-        <input type="file" name="upload_file" accept=".mp4,.mov,.webm,.mkv" placeholder="Upload a file">
+          <p> Acceptable VIDEO FORMATS: .mp4, .mov, .webm, .mkv</p>
+        <input type="file" name="upload_file" accept=".mp4,.mov,.webm,.mkv" placeholder="Upload video file">
+          <p> Acceptable AUDIO FORMATS: .mp3, .wav, .m4a</p>
+        <input type="file" name="upload_file" accept=".mp3,.wav,.m4a" placeholder="Upload audio file if separate">
+
         <input id="upload_button" type="submit" value="upload">
       </div>
 
           
           <div id="args_div">
-            <h2>Select ffmpeg arguments (1 per category)</h2>
+            <h2>Select formatting/ffmpeg arguments</h2>
             <h3>Video Format</h3>
             <input type="radio" name="video_format" value="mp4">
               <label>MP4</label><br>
