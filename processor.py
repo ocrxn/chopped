@@ -12,3 +12,8 @@ def process_video(video_path: str, events_file: str):
     """
     print("Starting video processing now....")
 
+#get .mp4 from uploads directory
+#import the json file from audio detection
+#call clipper.py and pass json files values
+#export generated clips to clips directory
+#delete .mp4 from uploads directory after file is processed
