@@ -1,12 +1,4 @@
 [
-{
-    "time": "4",
-    "defense": "error",
-    "offense": "hit"
-},
-{
-    "time": "8",
-    "defense": "error",
-    "offense": "hit"
-}
+    {"type": "hit", "timestamp": 4, "label": "Single"},
+    {"type": "error", "timestamp": 24, "label": "Error"}
 ]
