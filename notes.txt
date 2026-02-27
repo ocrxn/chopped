@@ -1,4 +1,4 @@
-    def create_db(self):
+def create_db(self):
         try:
             conn = self.connect_db()
             exe = conn.cursor()

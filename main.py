@@ -179,9 +179,6 @@ def logout():
 
 @app.route("/about")
 def about():
-    is_logged_out = require_login()
-    if is_logged_out:
-        return is_logged_out
     return render_template("about.html")
 
 @app.route("/delete", methods=["POST"])
@@ -206,5 +203,5 @@ def shutdown():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5050, debug=True)
 

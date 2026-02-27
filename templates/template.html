@@ -16,8 +16,7 @@
           </a>
             <ul class="menu">
             {% if session.get("user") %}
-            <li><a href="{{ url_for('upload') }}">Upload</a></li>
-            <li><a href="{{ url_for('about') }}">About</a></li>
+            <li><a href="{{ url_for('upload') }}">Upload</a></li>   
             <li><a href="{{ url_for('profile') }}">My Profile</a></li>
             <li><a href="{{ url_for('logout') }}">Log Out</a></li>
             {% else %}
