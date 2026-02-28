@@ -1,5 +1,4 @@
 # Developer Notes
-<-------------------------------------------->
 # How to Run Chopped-AI
 ## 1. Download python if not already (https://www.python.org/downloads/)
 ### Add to PATH
@@ -25,13 +24,12 @@
 ## 7. Website on port 5050 
 ### [http://127.0.0.1:5050/](http://127.0.0.1:5050/)
 
-## **Ngrok setup**
-`ngrok http 5050`
 
 # How To Push Changes to Github
-<-------------------------------------------->
-## 1. Confirm your branch
+## 1. Confirm your branch   
 `git status`
+## 2. Switch branch (if in wrong branch)
+`git checkout <branch_name>`
 ## 2. Add files for staging (preparation to commit)
 `git init <filename>`
 ### OR to add all files in working directory not mentioned in .gitignore:
@@ -45,3 +43,7 @@
 `git push`
 ## 5. Merge with master ⚠️(Causes merge conflicts)⚠️
 `git rebase origin/master`
+
+
+# Create Public IP Address using Ngrok
+`ngrok http 5050`
