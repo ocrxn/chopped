@@ -6,9 +6,11 @@
 ### Install Python Extension in VSCode
 ## 2. Clone into master branch
 `git clone "https://github.com/ocrxn/chopped-ai"`
+
 `cd ./chopped-ai`
 ## 3. VENV
 `python3 -m venv venv`
+
 `./venv/Scripts/Activate`
 ## 4. ENV FILE
 ### Create .env file
