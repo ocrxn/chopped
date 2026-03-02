@@ -6,8 +6,12 @@ __pycache__/
 *.pyo
 venv/
 .venv
-/chopped_uploads/
-/chopped_streams/
 git_notes.txt
 .DS_STORE
 sattic/.DS_STORE
+
+/chopped_uploads/
+/chopped_streams/
+/uploads/
+/cmpr_uploads/
+/clips/

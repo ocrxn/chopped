@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from db_conn import Connection
 from email_verif import connect_smtp
 from werkzeug.utils import secure_filename
-from config import UPLOAD_FOLDER, OUTPUT_FOLDER
+from config import UPLOAD_FOLDER, CMPR_UPLOAD_FOLDER, OUTPUT_FOLDER
 import signal
 import json
 import subprocess
@@ -63,7 +63,7 @@ def upload():
             #Parse filename and arguments
             filename = secure_filename(file.filename)
             os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-            os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+            os.makedirs(CMPR_UPLOAD_FOLDER, exist_ok=True)
             path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(path)
 
