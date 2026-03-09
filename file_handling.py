@@ -74,7 +74,7 @@ class FileHandler():
         f"Original size: {original_size / 1024:.2f} KB\n"
         f"Compressed size: {compressed_size / 1024:.2f} KB\n"
         f"Compression ratio: {ratio:.2f}x smaller\n"
-        f"Time taken: {elapsed:.2f} seconds\n"
+        f"Time taken: {elapsed:.2f} seconds or ~{(elapsed/60)} minutes\n"
         "----------------------------------------\n"
     )
         log_file_path = os.path.join(output_dir, "compression_log.txt")
