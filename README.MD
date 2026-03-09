@@ -9,12 +9,21 @@
 `cd ./chopped-ai`
 ## 3. VENV
 `python3 -m venv venv`
-
+### Verify python is installed in venv
+`which python`
+### should say something like "chopped-ai/venv/bin/python"
+### Activate VENV
+### For Mac/Linux
+`source venv/bin/activate`
+### For Windows
 `./venv/Scripts/Activate`
 ## 4. ENV FILE
 ### Create .env file
 ### Paste contents shared on Teams Chat into .env file 
 ## 5. Install required dependencies
+### if inside venv
+`pip install -r requirements.txt`
+### if that doesn't work
 `python3 -m pip install -r requirements.txt`
 ### if pip install breaks, install packages manually
 `python3 -m pip install <package>`

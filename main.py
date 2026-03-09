@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, abort, redirect, url_for, session, request, flash, jsonify, send_from_directory
+from flask import Flask, render_template, abort, send_file,redirect, url_for, session, request, flash, jsonify, send_from_directory
 from dotenv import load_dotenv
 from db_conn import Connection
 from email_verif import connect_smtp
@@ -9,6 +9,7 @@ import signal
 import json
 import subprocess
 from file_handling import FileHandler
+import time
 
 
 
@@ -17,7 +18,7 @@ load_dotenv()
 app.secret_key = os.getenv('app_key')
 
 #Upload file parameters
-app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1 #1 MB
+app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1024 * 50 #50 GB
 
 
 @app.errorhandler(413)
@@ -54,56 +55,60 @@ def upload():
 
     if request.method == "POST":
         try:
-            #Return Error if upload_file not found
             file = request.files.get('upload_file')
             if not file or file.filename == "":
-                return jsonify({'Error':'File part not found.'})
-            
+                return jsonify({'Error': 'File part not found.'})
 
-            #Parse filename and arguments
+            # Parse filename
             filename = secure_filename(file.filename)
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-            os.makedirs(CMPR_UPLOAD_FOLDER, exist_ok=True)
-            path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(path)
+            upload_path = os.path.join(UPLOAD_FOLDER, filename)
 
-            #Store values in dictionary
+            chunk_size = 1024 * 1024
+            with open(upload_path, "wb") as f:
+                while True:
+                    chunk = file.stream.read(chunk_size)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+
             kwargs = {
                 "filename": filename,
-                "path": path,
-                "video_format": request.form.get("video_format"),
-                "audio_format": request.form.get("audio_format"),
-                "output_format": request.form.get("output_format")
+                "input_path": upload_path,
+                "output_format": request.form.get("output_format") or "mp4",
+                "output_dir": CMPR_UPLOAD_FOLDER
             }
-                       
-            #File Handler (file_handling.py)
-            fh = FileHandler()
-            compress_video = fh.compress_video(kwargs)
-            print(compress_video)
 
-            return redirect(url_for("display", filename=filename))
+            fh = FileHandler()
+            result = fh.compress_video(kwargs)
+
+            # Compressed file name (matches compress_video output)
+            name, _ = os.path.splitext(filename)
+            compressed_filename = f"cmpr_{name}.{kwargs['output_format']}"
+
+            return redirect(url_for("display", filename=compressed_filename))
 
         except FileNotFoundError:
-            return jsonify({'Error':'No file uploaded.'})
+            return jsonify({'Error': 'No file uploaded.'})
         except Exception as e:
-            return jsonify({"An exception has occurred":f'{e}'})
+            return jsonify({"An exception has occurred": f'{e}'})
 
 
-
-#Return display.html
 @app.route("/display/<filename>")
 def display(filename):
     is_logged_out = require_login()
     if is_logged_out:
         return is_logged_out
-    
-    return render_template("display.html",filename=filename)
 
-#Return uploaded video
-#Implemented in <display.html>
-@app.route("/chopped_uploads/<filename>")
-def uploaded_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+    return render_template("display.html", filename=filename)
+
+
+@app.route("/cmpr_uploads/<filename>")
+def cmpr_uploads(filename):
+    path = os.path.join(CMPR_UPLOAD_FOLDER, filename)
+    if not os.path.exists(path):
+        return "File not found", 404
+
+    return send_file(path, as_attachment=False)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
