@@ -1,7 +1,7 @@
 #takes timestamps + labels and decides where clips start and end
 #calls clipper.py to generate all clips
 
-from clipper import cut_clip
+from clipper import clip_video
 from pathlib import Path
 import json
 import os
@@ -11,6 +11,7 @@ def load_events(events_file):
 
     events_file = Path(events_file)
 
+    #make sure filepath for file exists
     if not events_file.exists:
         raise Exception("file does not exist")
 
@@ -27,13 +28,27 @@ def load_events(events_file):
         raise Exception("Events JSON must be a list")
     
     return data
-        
 
+
+#extract json data into variables
+def extract_content(file_path):
+     
 
 def process_video(video_path: str, events_file: str):
     video_path = Path(video_path)
+    uploads_dir = Path("uploads")
 
     events = load_events(events_file)
+
+    clips_dir = Path("clips")
+    output_path = clips_dir
+
+    clip_video(
+         video_path=str(video_path),
+         output_path=str,
+         start_time = 10,
+         duration = 30,
+    )
 
     """
     video_path locates the video file
