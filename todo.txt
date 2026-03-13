@@ -1,2 +1,0 @@
-# Delete videos from chopped_uploads when compressed to cmpr_uploads
-# Add delete account feature
