@@ -1,40 +1,68 @@
 import os
-from audio_extractor import extract_audio
-from speech_recognition import transcribe_audio_with_whisper
-from clip_creator import create_clip
-from video_upload import convert_to_standard
-from timer import ProgressTracker
+import json
+from utilities import find_and_convert_video, extract_audio, transcribe_audio, ProgressTracker
 
-# List of phrases to trigger the clip
-trigger_phrases = sorted(
-    ["single", "error", "strikeout", "flyout", "walk", "double", "double play", "triple", "groundout"],
-    key=len,
-    reverse=True
-)
+# Map each phrase to its type and label for the JSON output
+trigger_phrases = {
+    "double play": {"type": "hit", "label": "Double Play"},
+    "strikeout": {"type": "out", "label": "Strikeout"},
+    "groundout": {"type": "out", "label": "Groundout"},
+    "flyout": {"type": "out", "label": "Flyout"},
+    "single": {"type": "hit", "label": "Single"},
+    "double": {"type": "hit", "label": "Double"},
+    "triple": {"type": "hit", "label": "Triple"},
+    "walk": {"type": "hit", "label": "Walk"},
+    # Positional errors E1-E9
+    "e1": {"type": "error", "label": "E1 - Pitcher"},
+    "e2": {"type": "error", "label": "E2 - Catcher"},
+    "e3": {"type": "error", "label": "E3 - First Base"},
+    "e4": {"type": "error", "label": "E4 - Second Base"},
+    "e5": {"type": "error", "label": "E5 - Third Base"},
+    "e6": {"type": "error", "label": "E6 - Shortstop"},
+    "e7": {"type": "error", "label": "E7 - Left Field"},
+    "e8": {"type": "error", "label": "E8 - Center Field"},
+    "e9": {"type": "error", "label": "E9 - Right Field"},
+    "error": {"type": "error", "label": "Error"},
+}
+
+# Sort longest first so "double play" is matched before "double"
+sorted_phrases = sorted(trigger_phrases.keys(), key=len, reverse=True)
 
 
-def find_trigger_segments(segments, trigger_phrases):
+def find_trigger_segments(segments):
     matches = []
     for segment in segments:
         text_lower = segment['text'].lower()
-        for phrase in trigger_phrases:
+        for phrase in sorted_phrases:
             if phrase in text_lower:
-                matches.append((segment['start'], phrase))
+                matches.append({
+                    "type": trigger_phrases[phrase]["type"],
+                    "timestamp": round(segment['start']),
+                    "label": trigger_phrases[phrase]["label"]
+                })
                 break
     return matches
+
+
+def delete_file(path):
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+            print(f"Deleted {path}")
+    except PermissionError:
+        print(f"Could not delete {path} — you can delete it manually.")
 
 
 def main():
     tracker = ProgressTracker()
 
-    # Step 1: Find and convert video to video.mp4
+    # Step 1: Find and rename video to video.mp4
     print("Searching for video file...")
-    if not convert_to_standard():
+    if not find_and_convert_video():
         return
 
     video_path = "video.mp4"
     audio_path = "audio.wav"
-    output_clip_path = "detected_voiceline_clip.mp4"
 
     # Step 2: Extract audio
     tracker.start_stage("Extracting audio")
@@ -43,7 +71,7 @@ def main():
 
     # Step 3: Transcribe audio
     tracker.start_stage("Transcribing audio")
-    segments = transcribe_audio_with_whisper(audio_path)
+    segments = transcribe_audio(audio_path)
     tracker.finish_stage()
 
     if not segments:
@@ -52,28 +80,24 @@ def main():
 
     print(f"Transcription complete. {len(segments)} segments found.")
 
-    # Step 4: Search for trigger phrases
-    matches = find_trigger_segments(segments, trigger_phrases)
+    # Step 4: Search for trigger phrases and build JSON output
+    matches = find_trigger_segments(segments)
     if not matches:
         print("No trigger phrases found in transcript.")
         tracker.finish_all()
         return
 
-    # Step 5: Create a clip for each trigger
-    for i, (detected_time, phrase) in enumerate(matches):
-        clip_output = f"voiceline{i + 1}.mp4"
-        tracker.start_stage("Creating clip")
-        print(f"Trigger '{phrase}' detected at {detected_time:.2f}s — saving to {clip_output}")
-        create_clip(video_path, detected_time, clip_output)
-        tracker.finish_stage()
+    # Step 5: Write results to JSON file
+    output_path = "timestamps.json"
+    with open(output_path, "w") as f:
+        json.dump(matches, f, indent=4)
+    print(f"\nDetected {len(matches)} voiceline(s). Saved to {output_path}")
 
-    # Step 6: Delete the original video now that we're done with it
-    if os.path.exists(video_path):
-        os.remove(video_path)
-        print(f"Deleted {video_path}")
+    # Step 6: Delete the original video and audio files
+    delete_file(video_path)
+    delete_file(audio_path)
 
     tracker.finish_all()
-    print(f"{len(matches)} clip(s) created.")
 
 
 if __name__ == "__main__":
