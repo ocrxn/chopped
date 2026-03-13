@@ -26,7 +26,6 @@ def clip_video(video_path: str, output_path: str, start_time: int, duration: int
 
 
     subprocess.run(command, check=True)
-    os.remove(video_path)
     
 
 #takes in video file path

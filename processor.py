@@ -6,6 +6,7 @@ from pathlib import Path
 import json
 import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 #function to load events from .json file
 def load_events(events_file):
@@ -18,7 +19,7 @@ def load_events(events_file):
 
     # Open JSON file with exceptions
     try:
-        with open("data.json", 'r') as file:
+        with open(events_file, 'r') as file:
             # load JSON data
             data = json.load(file)
     except json.JSONDecodeError:
@@ -31,9 +32,13 @@ def load_events(events_file):
     return data
      
 
-def process_video(video_path, events_file, clips_dir="clips", output_dir="uploads"):
-     os.makedirs(clips_dir, exist_ok=True)
+def process_video(video_path, events_file, clips_dir="clips"):
+     video_path = os.path.abspath(video_path) #absolute instead of relative path
+     events_file = os.path.abspath(events_file)
+     clips_dir = os.path.abspath(clips_dir)
 
+     os.makedirs(clips_dir, exist_ok=True)
+     
      events = load_events(events_file)
         #pass in the data.json file
      
@@ -44,7 +49,7 @@ def process_video(video_path, events_file, clips_dir="clips", output_dir="upload
           label = event["label"]
           time = event["timestamp"]
           
-          output_path = os.path.join(clips_dir, f"{i + 1} {label}.mp4")
+          output_path = os.path.abspath(os.path.join(clips_dir, f"{i + 1}_{label}.mp4"))
           clip_video(
             video_path=video_path, 
             start_time=time, 
@@ -52,12 +57,14 @@ def process_video(video_path, events_file, clips_dir="clips", output_dir="upload
             output_path=output_path
             )
 
-video_path = "uploads/video.mp4"
-os.remove(video_path)
 
+video_path = os.path.join(BASE_DIR, "uploads", "video1.mp4")
+events_path = os.path.join(BASE_DIR, "data.json")
 
-process_video("uploads/video.mp4", "data.json")
+process_video(video_path, events_path)
 print("ts should work I hope")
+
+# os.remove(video_path)
     
     
     # video_path locates the video file
