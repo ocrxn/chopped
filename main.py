@@ -229,5 +229,3 @@ def shutdown():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5050, debug=False)
-
->>>>>>> 2dcb53b7e330591619bd8bf5a0ce378642a2f990
