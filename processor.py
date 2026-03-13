@@ -6,18 +6,19 @@ from pathlib import Path
 import json
 import os
 
+
 #function to load events from .json file
 def load_events(events_file):
 
     events_file = Path(events_file)
 
     #make sure filepath for file exists
-    if not events_file.exists:
+    if not events_file.exists():
         raise Exception("file does not exist")
 
     # Open JSON file with exceptions
     try:
-        with open(events_file, 'r') as file:
+        with open("data.json", 'r') as file:
             # load JSON data
             data = json.load(file)
     except json.JSONDecodeError:
@@ -28,33 +29,41 @@ def load_events(events_file):
         raise Exception("Events JSON must be a list")
     
     return data
-
-
-#extract json data into variables
-def extract_content(file_path):
      
 
-def process_video(video_path: str, events_file: str):
-    video_path = Path(video_path)
-    uploads_dir = Path("uploads")
+def process_video(video_path, events_file, clips_dir="clips", output_dir="uploads"):
+     os.makedirs(clips_dir, exist_ok=True)
 
-    events = load_events(events_file)
+     events = load_events(events_file)
+        #pass in the data.json file
+     
+     for i, event in enumerate(events):
+          #enumerate loops over an iterable and keeps track of an index
+          
+          event_type = event["type"]
+          label = event["label"]
+          time = event["timestamp"]
+          
+          output_path = os.path.join(clips_dir, f"{i + 1} {label}.mp4")
+          clip_video(
+            video_path=video_path, 
+            start_time=time, 
+            duration=8, 
+            output_path=output_path
+            )
 
-    clips_dir = Path("clips")
-    output_path = clips_dir
+video_path = "uploads/video.mp4"
+os.remove(video_path)
 
-    clip_video(
-         video_path=str(video_path),
-         output_path=str,
-         start_time = 10,
-         duration = 30,
-    )
 
-    """
-    video_path locates the video file
-    events_file JSON file containing timestamps
-    """
-    print("Starting video processing now....")
+process_video("uploads/video.mp4", "data.json")
+print("ts should work I hope")
+    
+    
+    # video_path locates the video file
+    # events_file JSON file containing timestamps
+    # """
+    # print("Starting video processing now....")
 
 #get .mp4 from uploads directory
 #import the json file from audio detection

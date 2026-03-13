@@ -1,4 +1,4 @@
 [
-    {"type": "hit", "timestamp": 4, "label": "Single"},
-    {"type": "error", "timestamp": 24, "label": "Error"}
+    {"type": "hit", "label": "Single", "timestamp": 4},
+    {"type": "error", "label": "E6", "timestamp": 24}
 ]
