@@ -10,6 +10,7 @@ import json
 import subprocess
 from file_handling import FileHandler
 import time
+import datetime
 
 
 
@@ -55,18 +56,19 @@ def upload():
 
     if request.method == "POST":
         try:
-            file = request.files.get('upload_file')
-            if not file or file.filename == "":
+            video_file = request.files.get('video_upload_file')
+            audio_file = request.files.get('audio_upload_file')
+            if not video_file or video_file.filename == "":
                 return jsonify({'Error': 'File part not found.'})
 
             # Parse filename
-            filename = secure_filename(file.filename)
+            filename = secure_filename(video_file.filename)
             upload_path = os.path.join(UPLOAD_FOLDER, filename)
 
             chunk_size = 1024 * 1024
             with open(upload_path, "wb") as f:
                 while True:
-                    chunk = file.stream.read(chunk_size)
+                    chunk = video_file.stream.read(chunk_size)
                     if not chunk:
                         break
                     f.write(chunk)
@@ -81,6 +83,14 @@ def upload():
 
             fh = FileHandler()
             result = fh.compress_video(kwargs)
+
+            #Dump result to file
+            with open("dumps.txt") as file:
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                file.write(f"{timestamp}\n-------------------------")
+                for i,line in enumerate(result):
+                    file.write(f"{i}. {line}")
+                file.write("-------------------------")
 
             # Compressed file name (matches compress_video output)
             name, _ = os.path.splitext(filename)
@@ -187,30 +197,33 @@ def about():
 
 @app.route("/delete", methods=["POST"])
 def delete():
-    is_logged_out = require_login()
-    if is_logged_out:
-        return is_logged_out
-    
-    if request.method == "POST":
-        del_username = request.form["del-username"]
-        del_password = request.form["del-password"]
+    try:
+        is_logged_out = require_login()
+        if is_logged_out:
+            return is_logged_out
+        
+        if request.method == "POST":
+            del_username = request.form["del-username"]
+            del_password = request.form["del-password"]
 
-        if del_username != session.get("user"):
-            flash("Username does not match current user.")
+            if del_username != session.get("user"):
+                flash("Username does not match current user.")
+                return redirect(url_for("profile"))
+
+            cn = Connection()
+            if cn.confirm_user(del_username, del_password):
+                delete = cn.delete_user(del_username)
+                if delete:
+                    flash("Account successfully deleted")
+                    return redirect(url_for("login"))
+                else:
+                    flash("Database failed to query action. Please try again.")
+                    return redirect(url_for("profile"))
+            flash("Incorrect password")
             return redirect(url_for("profile"))
-
-        cn = Connection()
-        if cn.confirm_user(del_username, del_password):
-            delete = cn.delete_user(del_username)
-            if delete:
-                flash("Account successfully deleted")
-                return redirect(url_for("login"))
-            else:
-                return jsonify({"Database Error":"Account failed to delete. Please try again."})
-        flash("Incorrect password")
+    except Exception as e:
+        flash(f"An unknown error has occurred: {e}")
         return redirect(url_for("profile"))
-    
-    return jsonify({"Error Occurred":"Method /delete has failed"})
 
 
 @app.route("/shutdown", methods=["POST"])
@@ -221,10 +234,10 @@ def shutdown():
     if shutdown_server is None:
         print(f"Flask server not using werkzeug. Shutting down using SIGINT...")
         os.kill(os.getpid(), signal.SIGINT)
-        return jsonify({"SIGINT trigger":"Success","Content":"Flask server shutting down..."})
+        return redirect("https://www.google.com")
     else:
         shutdown_server()
-        return jsonify({"Werkzeug trigger":"Success","Content":"Flask server shutting down..."})
+        return redirect("https://www.google.com")
 
 
 if __name__ == "__main__":
