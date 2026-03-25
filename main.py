@@ -106,7 +106,7 @@ def upload():
                 file.write("-------------------------")
 
             # Compressed file name (matches compress_video output)
-            name, _ = os.path.splitext(filename)
+            name, _ = os.path.splitext(video_filename)
             compressed_filename = f"cmpr_{name}.{kwargs['output_format']}"
 
             return redirect(url_for("display", filename=compressed_filename))
