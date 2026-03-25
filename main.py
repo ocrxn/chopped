@@ -62,20 +62,33 @@ def upload():
                 return jsonify({'Error': 'File part not found.'})
 
             # Parse filename
-            filename = secure_filename(video_file.filename)
-            upload_path = os.path.join(UPLOAD_FOLDER, filename)
-
+            video_filename = secure_filename(video_file.filename)
+            video_upload_path = os.path.join(UPLOAD_FOLDER, video_filename)
+            
             chunk_size = 1024 * 1024
-            with open(upload_path, "wb") as f:
+            with open(video_upload_path, "wb") as f:
                 while True:
                     chunk = video_file.stream.read(chunk_size)
                     if not chunk:
                         break
                     f.write(chunk)
 
+            #Handle audio if included
+            if audio_file:
+                audio_filename = secure_filename(audio_file.filename)
+                audio_upload_path = os.path.join(UPLOAD_FOLDER, audio_filename)
+
+                with open(audio_upload_path, "wb") as f:
+                    while True:
+                        chunk = audio_file.stream.read(chunk_size)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+
             kwargs = {
-                "filename": filename,
-                "input_path": upload_path,
+                "filename": video_filename,
+                "video_input_path": video_upload_path,
+                "audio_input_path": audio_upload_path if audio_file else None,
                 "hardware_encode": request.form.get("hardware_encode"),
                 "output_format": request.form.get("output_format") or "mp4",
                 "output_dir": CMPR_UPLOAD_FOLDER

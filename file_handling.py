@@ -28,14 +28,12 @@ class FileHandler():
 
     def compress_video(self, kwargs):
         filename = kwargs.get("filename")
-        input_path = kwargs.get("input_path")
+        video_input_path = kwargs.get("video_input_path")
+        audio_input_path = kwargs.get("audio_input_path") or None
         output_format = kwargs.get("output_format") or "mp4"
         output_dir = kwargs.get("output_dir")
 
-        #If separate audio file is used. Not current implemented TODO
-        audio_format = kwargs.get("audio_format")
-
-        if not filename or not input_path:
+        if not filename or not video_input_path:
             return
         
         os.makedirs(output_dir, exist_ok=True)
@@ -65,13 +63,13 @@ class FileHandler():
         if use_hardware_encoding and hw_encoder:
             video_codec = hw_encoder
         
-        original_size = os.path.getsize(input_path)
+        original_size = os.path.getsize(video_input_path)
         start_time = time.perf_counter()
 
         #Initial ffmpeg args
         cmd = [
             "ffmpeg",
-            "-i", input_path,
+            "-i", video_input_path,
             "-vf", "scale='min(1280,iw)':-2",
             "-c:v", video_codec
         ]
