@@ -20,9 +20,9 @@
   width: 400px;
   display: flex;
   flex-direction: column;
-  border: 6px solid greenyellow;
+  border: 6px solid white;
   padding: 10px;
-  background: #2c10bc;
+  background: #679436;
   border-radius: 20px;
 }
 
@@ -37,12 +37,12 @@
 }
 
 #upload_button {
-  background-color: rgb(0, 255, 38);
+  background-color: #679436;
   padding: 5px 10px;
   height: 50px;
   width: 180px;
   border-radius: 24px;
-  border: solid gold 2px;
+  border: solid white 2px;
   color: white;
 }
 

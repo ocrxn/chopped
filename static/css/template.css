@@ -100,8 +100,8 @@ nav {
 
 .main__container h1 {
   font-size: 2.5rem;
-  background: black; 
-  color: black;
+  background: #241623; 
+  color: #241623;
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text; 
@@ -111,7 +111,7 @@ nav {
 
 .main__container h2 {
   font-size: 2rem;
-  background: #474245; 
+  background: #241623; 
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text; 
@@ -123,7 +123,7 @@ nav {
 margin-top: 1rem;
 font-size: 1rem;
 font-weight: 700;
- color: white;
+ color: #DE541E;
 }
 
 .main__btn {
