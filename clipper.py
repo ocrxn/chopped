@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import subprocess #lets Python run other programs on computer (FFmpeg)
-from pathlib import Path #necessary for working with file paths
+from pathlib import Path
 import json
 import os
 
@@ -28,8 +28,3 @@ def clip_video(video_path: str, output_path: str, start_time: int, duration: int
     ]
 
     subprocess.run(command, check=True)
-
-#takes in video file path
-#takes in data from JSON file from processor.py
-#uses JSON parameters
-#uses ffmpeg to cut clips and put into folders
