@@ -44,7 +44,6 @@ def find_and_convert_video(output_filename="video.mp4"):
     print(f"Could not rename '{input_filename}' — make sure it isn't open in another program.")
     return None
 
-
 # Audio Extractor
 
 def extract_audio(video_path, output_audio_path):
@@ -62,6 +61,7 @@ def transcribe_audio(audio_path):
     model = whisper.load_model("base")
     result = model.transcribe(audio_path)
     return result['segments']
+
 
 
 
