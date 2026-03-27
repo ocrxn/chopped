@@ -30,7 +30,7 @@ class FileHandler():
         filename = kwargs.get("filename")
         video_input_path = kwargs.get("video_input_path")
         audio_input_path = kwargs.get("audio_input_path") or None
-        output_format = kwargs.get("output_format") or "mp4"
+        vid_ext = kwargs.get("vid_ext") or "mp4"
         output_dir = kwargs.get("output_dir")
 
         if not filename or not video_input_path:
@@ -38,7 +38,7 @@ class FileHandler():
         
         os.makedirs(output_dir, exist_ok=True)
         name, _ = os.path.splitext(filename)
-        output_path = os.path.join(output_dir, f"cmpr_{name}.{output_format}")
+        output_path = os.path.join(output_dir, f"cmpr_{name}.{vid_ext}")
 
         use_hardware_encoding = bool(kwargs.get("hardware_encode"))
         hw_encoder = self.detect_hardware_encoder()
@@ -56,8 +56,8 @@ class FileHandler():
             "mov": "aac"
         }
 
-        video_codec = video_codec_map.get(output_format, "libx264")
-        audio_codec = audio_codec_map.get(output_format, "aac")
+        video_codec = video_codec_map.get(vid_ext, "libx264")
+        audio_codec = audio_codec_map.get(vid_ext, "aac")
 
         #If available and enabled, swap to hardware encoding for accelerated processing
         if use_hardware_encoding and hw_encoder:

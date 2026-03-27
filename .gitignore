@@ -11,6 +11,7 @@ git_notes.txt
 .DS_STORE
 static/.DS_STORE
 
+dumps.txt
 /chopped_uploads/
 /compressed_uploads/
 /chopped_streams/

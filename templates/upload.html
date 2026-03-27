@@ -8,7 +8,7 @@
 
   <h1> Upload your Video (and Audio) Files </h1>
   <br>
-  <h2>Max File Size: 1 MB</h2>
+  <h2>Max File Size: {{ file_size }} {{ base }}</h2>
 
 <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
     <div id="form_div">
@@ -37,38 +37,33 @@
         </div> 
 
         <div id="args_div">
-            <h2 style="color: white;">Select formatting/ffmpeg arguments</h2>
+            <h2 style="color: white;">Select Upload Style</h2>
             
             <div class="option-box">
                 <div class="option-text">
-                    <h4>Enable hardware encoding: fast, but larger file</h4>
-                    <h4>Leave unchecked for CPU encoding: slower, but smaller file</h4>
-                    <h6>PLEASE NOTE: Small (less than 50MB) video files could actually become BIGGER with Hardware Encoding</h6>
+                    <h4>Encoding Method</h4>
+                    <h6>Fast (GPU) vs. Efficient (CPU)</h6>
+                    <p style="font-size: 10px; color: #666; margin: 5px 0 0 0;">
+                        NOTE: Small files may not work well with Hardware Encoding.
+                    </p>
                 </div>
-                <div class="option-checkbox">
-                    <input type="checkbox" name="hardware_encode" id="hardware_encode">
-                    <label for="hardware_encode">ENABLE</label>
+                
+                <div class="option-checkbox radio-group">
+                    <label class="radio-item">
+                        <input type="radio" name="hardware_encode" value="none" id="none" checked>
+                        <span>None</span>
+                    </label>
+                    
+                    <label class="radio-item">
+                        <input type="radio" name="hardware_encode" value="cpu" id="cpu">
+                        <span>CPU (Slower)</span>
+                    </label>
+                    
+                    <label class="radio-item">
+                        <input type="radio" name="hardware_encode" value="gpu" id="gpu">
+                        <span>GPU (Faster)</span>
+                    </label>
                 </div>
-            </div>
-            
-            <h3 style="color: white;">Video Output Format</h3>
-            <div class="option-box radio-box">
-                <label class="radio-option">
-                    <input type="radio" name="output_format" value="mp4" checked>
-                    <span class="radio-label">MP4</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="output_format" value="mov">
-                    <span class="radio-label">MOV</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="output_format" value="webm">
-                    <span class="radio-label">WebM</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="output_format" value="mkv">
-                    <span class="radio-label">MKV</span>
-                </label>
             </div>
         </div> 
 

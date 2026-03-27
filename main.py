@@ -19,7 +19,7 @@ load_dotenv()
 app.secret_key = os.getenv('app_key')
 
 #Upload file parameters
-app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1024 * 50 #50 GB
+app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1024 * 15 #15 GB
 
 
 @app.errorhandler(413)
@@ -52,7 +52,11 @@ def upload():
         return is_logged_out
     
     if request.method == "GET":
-        return render_template("upload.html")
+        file_size = app.config['MAX_CONTENT_LENGTH'] / (1024 * 1024)
+        base = 'MB' if file_size < 1024 else 'GB'
+        if base == 'GB':
+            file_size /= 1024
+        return render_template("upload.html", file_size=file_size, base=base)
 
     if request.method == "POST":
         try:
@@ -63,6 +67,7 @@ def upload():
 
             # Parse filename
             video_filename = secure_filename(video_file.filename)
+            video_extension = os.path.splitext(video_filename)[1].lower().replace(".", "")
             video_upload_path = os.path.join(UPLOAD_FOLDER, video_filename)
             
             chunk_size = 1024 * 1024
@@ -76,6 +81,7 @@ def upload():
             #Handle audio if included
             if audio_file:
                 audio_filename = secure_filename(audio_file.filename)
+                audio_extension = os.path.splitext(video_filename)[1].lower().replace(".", "")
                 audio_upload_path = os.path.join(UPLOAD_FOLDER, audio_filename)
 
                 with open(audio_upload_path, "wb") as f:
@@ -90,20 +96,23 @@ def upload():
                 "video_input_path": video_upload_path,
                 "audio_input_path": audio_upload_path if audio_file else None,
                 "hardware_encode": request.form.get("hardware_encode"),
-                "output_format": request.form.get("output_format") or "mp4",
+                "vid_ext": video_extension,
+                "audio_ext": audio_extension,
                 "output_dir": CMPR_UPLOAD_FOLDER
             }
 
-            fh = FileHandler()
-            result = fh.compress_video(kwargs)
+            # Compress the video if user selected a compression mode
+            if kwargs.get("hardware_encode") != "none":
+                fh = FileHandler()
+                result = fh.compress_video(kwargs)
 
-            #Dump result to file
-            with open("dumps.txt") as file:
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                file.write(f"{timestamp}\n-------------------------")
-                for i,line in enumerate(result):
-                    file.write(f"{i}. {line}")
-                file.write("-------------------------")
+                #Dump result to file
+                with open("dumps.txt") as file:
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    file.write(f"{timestamp}\n-------------------------")
+                    for i,line in enumerate(result):
+                        file.write(f"{i}. {line}")
+                    file.write("-------------------------")
 
             # Compressed file name (matches compress_video output)
             name, _ = os.path.splitext(video_filename)
