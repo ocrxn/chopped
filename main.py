@@ -1,25 +1,26 @@
-import os
 from flask import Flask, render_template, abort, send_file,redirect, url_for, session, request, flash, jsonify, send_from_directory
 from dotenv import load_dotenv
-from db_conn import Connection
 from email_verif import connect_smtp
 from werkzeug.utils import secure_filename
-from config import UPLOAD_FOLDER, CMPR_UPLOAD_FOLDER, OUTPUT_FOLDER
+import os
 import signal
 import json
 import subprocess
-from file_handling import FileHandler
 import time
+import datetime
+import tempfile
+import shutil
 
-
+from db_conn import Connection
+from config import UPLOAD_FOLDER, CLIPS_FOLDER, ZIP_FOLDER
+from file_handling import FileHandler
 
 app = Flask(__name__)
 load_dotenv()
 app.secret_key = os.getenv('app_key')
 
 #Upload file parameters
-app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1024 * 50 #50 GB
-
+app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1024 * 15 #15 GB
 
 @app.errorhandler(413)
 def max_file_size_exceeded(e):
@@ -51,61 +52,112 @@ def upload():
         return is_logged_out
     
     if request.method == "GET":
-        return render_template("upload.html")
+        file_size = app.config['MAX_CONTENT_LENGTH'] / (1024 * 1024)
+        base = 'MB' if file_size < 1024 else 'GB'
+        if base == 'GB':
+            file_size /= 1024
+        return render_template("upload.html", file_size=file_size, base=base)
 
     if request.method == "POST":
         try:
-            file = request.files.get('upload_file')
-            if not file or file.filename == "":
+            #Get video/audio files from website and return if empty
+            video_file = request.files.get('video_upload_file')
+            audio_file = request.files.get('audio_upload_file')
+            if not video_file or video_file.filename == "":
                 return jsonify({'Error': 'File part not found.'})
 
-            # Parse filename
-            filename = secure_filename(file.filename)
-            upload_path = os.path.join(UPLOAD_FOLDER, filename)
+            #Create secure filenames, extract exts, and make paths
+            video_filename = secure_filename(video_file.filename)
+            video_extension = os.path.splitext(video_filename)[1].lower().replace(".", "")
+            video_upload_path = os.path.join(UPLOAD_FOLDER, video_filename)
 
-            chunk_size = 1024 * 1024
-            with open(upload_path, "wb") as f:
-                while True:
-                    chunk = file.stream.read(chunk_size)
-                    if not chunk:
-                        break
-                    f.write(chunk)
+            audio_filename = secure_filename(audio_file.filename) if audio_file else None
+            audio_extension = os.path.splitext(audio_filename)[1].lower().replace(".", "") if audio_file else None
+            audio_upload_path = os.path.join(UPLOAD_FOLDER, audio_filename) if audio_file else None
 
-            kwargs = {
-                "filename": filename,
-                "input_path": upload_path,
-                "hardware_encode": request.form.get("hardware_encode"),
-                "output_format": request.form.get("output_format") or "mp4",
-                "output_dir": CMPR_UPLOAD_FOLDER
-            }
+            #Get the type of compression encoding user selected
+            encoding = request.form.get("hardware_encode")
 
-            fh = FileHandler()
-            result = fh.compress_video(kwargs)
+            #Create a temporary file where video gets written
+            with tempfile.NamedTemporaryFile(suffix=f".{video_extension}", delete=False) as temp_vid:
+                temp_vid_path = temp_vid.name
+                video_file.save(temp_vid_path)
+                temp_vid.flush()
+            
+            temp_audio_path = None
+            if audio_file:
+                with tempfile.NamedTemporaryFile(suffix=f".{audio_extension}", delete=False) as temp_audio:
+                    temp_audio_path = temp_audio.name
+                    audio_file.save(temp_audio_path)
+                    temp_audio.flush()
+      
+            try:
+                fh = FileHandler()
+                kwargs = {
+                        "vid_filename": video_filename,
+                        "audio_filename": audio_filename,
+                        "video_path": temp_vid_path,
+                        "audio_path": temp_audio_path,
+                        "encoding": encoding,
+                        "vid_ext": video_extension,
+                        "audio_ext": audio_extension,
+                        "output_dir": UPLOAD_FOLDER
+                    }
+                
+                #Copy audio file
+                if audio_file:
+                    shutil.move(temp_audio_path,audio_upload_path)
+                
+                result = {"status": "skipped", "cmpr_size": os.path.getsize(temp_vid_path)}
+                #Copy video file
+                if encoding and encoding != "none":
+                    # Compress the video if user selected a compression mode
+                    result = fh.compress_video(kwargs)
+                    print(result)
 
-            # Compressed file name (matches compress_video output)
-            name, _ = os.path.splitext(filename)
-            compressed_filename = f"cmpr_{name}.{kwargs['output_format']}"
+                else:
+                    # Skip compression and move video from temp to uploads
+                    shutil.move(temp_vid_path,video_upload_path) 
+                
+                cmpr_size = result.get("cmpr_size")
 
-            return redirect(url_for("display", filename=compressed_filename))
+                #Zip the files
+                fh.zip_clips(clips_dir=CLIPS_FOLDER,zip_dir=ZIP_FOLDER)
+
+
+            except Exception as e:
+                flash(f"An error has occurred: {e}")
+                return redirect(url_for('upload'))
+            finally:
+                if temp_vid_path and os.path.exists(temp_vid_path):
+                    os.remove(temp_vid_path)
+                if temp_audio_path and os.path.exists(temp_audio_path):
+                    os.remove(temp_audio_path)
+            return redirect(url_for("display", filename=video_filename, cmpr_mode=encoding, cmpr_size=cmpr_size))
 
         except FileNotFoundError:
-            return jsonify({'Error': 'No file uploaded.'})
+            flash("Error: No file uploaded")
+            return redirect(url_for('upload'))
+        
         except Exception as e:
-            return jsonify({"An exception has occurred": f'{e}'})
-
+            flash(f"Exception has occurred: {e}")
+            return redirect(url_for('upload'))
 
 @app.route("/display/<filename>")
 def display(filename):
     is_logged_out = require_login()
     if is_logged_out:
         return is_logged_out
+    cmpr_mode = request.args.get("cmpr_mode")
+    cmpr_size_long = int(request.args.get("cmpr_size")) / (1024 * 1024)
+    cmpr_size = "{:.2f}".format(cmpr_size_long)
 
-    return render_template("display.html", filename=filename)
+    return render_template("display.html", filename=filename, cmpr_mode=cmpr_mode, cmpr_size=cmpr_size)
 
 
-@app.route("/cmpr_uploads/<filename>")
-def cmpr_uploads(filename):
-    path = os.path.join(CMPR_UPLOAD_FOLDER, filename)
+@app.route("/get_video/<filename>")
+def get_video(filename):
+    path = os.path.join(UPLOAD_FOLDER, filename)
     if not os.path.exists(path):
         return "File not found", 404
 
@@ -187,31 +239,37 @@ def about():
 
 @app.route("/delete", methods=["POST"])
 def delete():
-    is_logged_out = require_login()
-    if is_logged_out:
-        return is_logged_out
-    
-    if request.method == "POST":
-        del_username = request.form["del-username"]
-        del_password = request.form["del-password"]
+    try:
+        is_logged_out = require_login()
+        if is_logged_out:
+            return is_logged_out
+        
+        if request.method == "POST":
+            del_username = request.form["del-username"]
+            del_password = request.form["del-password"]
 
-        if del_username != session.get("user"):
-            flash("Username does not match current user.")
+            if del_username != session.get("user"):
+                flash("Username does not match current user.")
+                return redirect(url_for("profile"))
+
+            cn = Connection()
+            if cn.confirm_user(del_username, del_password):
+                delete = cn.delete_user(del_username)
+                if delete:
+                    flash("Account successfully deleted")
+                    return redirect(url_for("login"))
+                else:
+                    flash("Database failed to query action. Please try again.")
+                    return redirect(url_for("profile"))
+            flash("Incorrect password")
             return redirect(url_for("profile"))
-
-        cn = Connection()
-        if cn.confirm_user(del_username, del_password):
-            delete = cn.delete_user(del_username)
-            if delete:
-                flash("Account successfully deleted")
-                return redirect(url_for("login"))
-            else:
-                return jsonify({"Database Error":"Account failed to delete. Please try again."})
-        flash("Incorrect password")
+    except Exception as e:
+        flash(f"An unknown error has occurred: {e}")
         return redirect(url_for("profile"))
-    
-    return jsonify({"Error Occurred":"Method /delete has failed"})
 
+@app.route("/explain")
+def explain():
+    return render_template("explain.html")
 
 @app.route("/shutdown", methods=["POST"])
 def shutdown():
@@ -221,14 +279,10 @@ def shutdown():
     if shutdown_server is None:
         print(f"Flask server not using werkzeug. Shutting down using SIGINT...")
         os.kill(os.getpid(), signal.SIGINT)
-        return jsonify({"SIGINT trigger":"Success","Content":"Flask server shutting down..."})
-    else:
+        return redirect("https://www.google.com")
+    else:  
         shutdown_server()
-        return jsonify({"Werkzeug trigger":"Success","Content":"Flask server shutting down..."}) 
-    
-@app.route("/explain")
-def explain():
-    return render_template("explain.html")
+        return redirect("https://www.google.com")
 
 
 if __name__ == "__main__":

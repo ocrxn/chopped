@@ -2,55 +2,79 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
 {% endblock %}
-
-
 {% block content %}
-<div class="upload"> 
-  <div class="upload__container"> 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul>
+      {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
   <h1> Upload your Video (and Audio) Files </h1>
   <br>
-  <h2>Max File Size: 1 MB</h2>
-  </div> 
- 
-  <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+  <h2>Max File Size: {{ file_size }} {{ base }}</h2>
+
+<form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
     <div id="form_div">
 
-      <div id="upload_div">
-          <p> Acceptable VIDEO FORMATS: .mp4, .mov, .webm, .mkv</p>
-        <input type="file" name="upload_file" accept=".mp4,.mov,.webm,.mkv" placeholder="Upload video file">
-          <p> Acceptable AUDIO FORMATS: .mp3, .wav, .m4a</p>
-        <input type="file" name="upload_file" accept=".mp3,.wav,.m4a" placeholder="Upload audio file if separate">
-
-        <input id="upload_button" type="submit" value="upload">
-      </div>
-
+        <div id="upload_div">
+            <p>Acceptable VIDEO FORMATS: .mp4, .mov, .webm, .mkv</p>
+            <input type="file" name="video_upload_file" accept=".mp4,.mov,.webm,.mkv" placeholder="Upload video file">
           
-          <div id="args_div">
-            <h2>Select formatting/ffmpeg arguments</h2>
-            <h4>Enable hardware encoding: fast, but larger file</h3>
-            <h4>Leave unchecked for CPU encoding: slower, but smaller file</h4>
-            <input type="checkbox" name="hardware_encode">
-            <label>ENABLE Hardware Encoding</label><br>
+            <div class="audio-box">
+                <label class="audio-checkbox">
+                    <input type="checkbox" id="include_audio" name="include_audio">
+                    Includes Audio File
+                </label>
 
-            <h3>Video Format</h3>
-            <input type="radio" name="output_format" value="mp4">
-              <label>MP4</label><br>
+                <div class="audio-input">
+                    <p>Acceptable AUDIO FORMATS: .mp3, .wav, .m4a</p>
+                    <input type="file" name="audio_upload_file" accept=".mp3,.wav,.m4a">
+                </div>
+            </div>
+
+            <div class="submit-container">
+                <button type="submit" class="submit-btn">
+                    UPLOAD VIDEO
+                </button>
+            </div>
+        </div> 
+
+        <div id="args_div">
+            <h2 style="color: white;">Select Upload Style</h2>
             
-            <input type="radio" name="output_format" value="mov">
-              <label>MOV</label><br>
+            <div class="option-box">
+                <div class="option-text">
+                    <h4>Encoding Method</h4>
+                    <h6>Fast (GPU) vs. Efficient (CPU)</h6>
+                    <p style="font-size: 10px; color: #666; margin: 5px 0 0 0;">
+                        NOTE: Small files may not work well with Hardware Encoding.
+                    </p>
+                </div>
+                
+                <div class="option-checkbox radio-group">
+                    <label class="radio-item">
+                        <input type="radio" name="hardware_encode" value="none" id="none" checked>
+                        <span>None</span>
+                    </label>
+                    
+                    <label class="radio-item">
+                        <input type="radio" name="hardware_encode" value="cpu" id="cpu">
+                        <span>CPU (Slower)</span>
+                    </label>
+                    
+                    <label class="radio-item">
+                        <input type="radio" name="hardware_encode" value="gpu" id="gpu">
+                        <span>GPU (Faster)</span>
+                    </label>
+                </div>
+            </div>
+        </div> 
 
-            <input type="radio" name="output_format" value="webm">
-              <label>WebM</label><br>
-            
-            <input type="radio" name="output_format" value="mkv">
-              <label>MKV</label><br>
+    </div> 
+</form>
 
-            <h3>Includes Audio?</h3>
-            <input type="checkbox" name="audio_include" value="audio_include_box">
-              <label>Yes</label>
-
-          </div>
-        </div>
-  </form>
-</div>
 {% endblock %}
