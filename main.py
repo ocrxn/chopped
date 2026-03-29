@@ -122,7 +122,7 @@ def upload():
                 cmpr_size = result.get("cmpr_size")
 
                 #Zip the files
-                # fh.zip_clips(clips_dir=CLIPS_FOLDER,zip_dir=ZIP_FOLDER)
+                # fh.zip_clips(filename=video_filename,clips_dir=CLIPS_FOLDER,zip_dir=ZIP_FOLDER)
 
 
             except Exception as e:
