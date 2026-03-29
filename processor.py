@@ -43,7 +43,7 @@ def matching_video(events_file, uploads_dir="uploads"): #debugged
     json_stem = events_file.stem # ex: takes game_0001 from game_0001.json
 
     possible_extensions = [".mp4", ".mov", ".webm", ".mkv"]
-    print(json_stem)
+    
     for ext in possible_extensions:
          video_path = uploads_dir / f"{json_stem}{ext}"
          if video_path.exists():
@@ -97,7 +97,7 @@ def process_video(events_file, clips_dir = "clips"):
                  output_path=output_path
                  )
     
-            #os.remove(video_path)
+            os.remove(video_path)
 
 json_dir = BASE_DIR / "json"
 
@@ -109,6 +109,7 @@ for json_file in json_dir.glob("*.json"):
         process_video(json_file, clips_dir = game_clips_dir)
             #process_video will make a new directory within the clips folder
             #it will have the name of json_file.stem
+        os.remove(json_file)
     except Exception as e:
         print(f"Error processing {json_file.name}: {e}")
     #if error happens in try block, store in variable e, and print that error as a message
