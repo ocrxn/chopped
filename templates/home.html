@@ -1,11 +1,62 @@
+  <head>
+    <meta charset="utf-8">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chopped.ai</title>
+    <link rel="stylesheet" href="static/css/template.css">
+    <link rel="stylesheet" href="static/css/home.css">
+  </head>
+
+  <body>
 {% extends "template.html" %}
 <title>Hello World</title>
-
 {% block content %}
 
-    <h1> Welcome to Chopped AI </h1>
-    <p> Lorem Ipsum </p>
+   <!--Intro Section-->
+<div class="home">  
+    <div class="home__container">
+        <div class="home__content">
+        <h1>Welcome to Chopped.ai</h1>
+        <h2>Upload your first clip!</h2>
+        <button class="home__btn"><a href="upload">Get Started</a></button>
+     </div>
+        <div class="home__image">
+            <img src="static\images\BaseballPlayer.svg" alt="Baseball Player" id="home__img">
+        </div>
+    </div>
+</div> 
 
+
+
+<!-- Footer Section --> 
+
+<div class="footer__container">
+    <div class="footer__links">
+        <div class="footer__link--wrapper">
+            <div class="footer__link--items">
+                <h2>About Us</h2>
+                <a href="howwork">How It Works</a>
+                <a href="/">Testimonials</a>
+                <a href="/">Careers</a>
+                <a href="/">Investors</a>
+                <a href="/">Terms of Service</a>
+            </div>
+            <div class="footer__link--items">
+                <h2>Contact Us</h2>
+                <a href="/">Contact</a>
+                <a href="/">Support</a>
+                <a href="/">Destinations</a>
+                <a href="/">Sponsorships</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- copyright section -->
+<div class="footer__container">
+     <a href="/" id="footer__logo"><i class="fas fa-gem"> </i>Chopped.ai</a>
+     <p class="website__rights">Chopped.ai © 2026</p> 
+</div>
 
 {% endblock %}
+</body>
 

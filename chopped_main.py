@@ -1,6 +1,6 @@
 import os
 import json
-from utilities import find_and_convert_video, extract_audio, transcribe_audio, ProgressTracker
+from utilities import find_video, extract_audio, transcribe_audio
 
 # Map each phrase to its type and label for the JSON output
 trigger_phrases = {
@@ -8,20 +8,22 @@ trigger_phrases = {
     "strikeout": {"type": "out", "label": "Strikeout"},
     "groundout": {"type": "out", "label": "Groundout"},
     "flyout": {"type": "out", "label": "Flyout"},
+    "pickoff": {"type": "pickoff", "label": "Pickoff"},
+    "bunt": {"type": "bunt", "label": "Bunt"},
     "single": {"type": "hit", "label": "Single"},
     "double": {"type": "hit", "label": "Double"},
     "triple": {"type": "hit", "label": "Triple"},
-    "walk": {"type": "hit", "label": "Walk"},
+    "home run": {"type": "hit", "label": "Home Run"},
     # Positional errors E1-E9
-    "e1": {"type": "error", "label": "E1 - Pitcher"},
-    "e2": {"type": "error", "label": "E2 - Catcher"},
-    "e3": {"type": "error", "label": "E3 - First Base"},
-    "e4": {"type": "error", "label": "E4 - Second Base"},
-    "e5": {"type": "error", "label": "E5 - Third Base"},
-    "e6": {"type": "error", "label": "E6 - Shortstop"},
-    "e7": {"type": "error", "label": "E7 - Left Field"},
-    "e8": {"type": "error", "label": "E8 - Center Field"},
-    "e9": {"type": "error", "label": "E9 - Right Field"},
+    "e1": {"type": "error", "label": "E1"},
+    "e2": {"type": "error", "label": "E2"},
+    "e3": {"type": "error", "label": "E3"},
+    "e4": {"type": "error", "label": "E4"},
+    "e5": {"type": "error", "label": "E5"},
+    "e6": {"type": "error", "label": "E6"},
+    "e7": {"type": "error", "label": "E7"},
+    "e8": {"type": "error", "label": "E8"},
+    "e9": {"type": "error", "label": "E9"},
     "error": {"type": "error", "label": "Error"},
 }
 
@@ -54,25 +56,22 @@ def delete_file(path):
 
 
 def main():
-    tracker = ProgressTracker()
 
-    # Step 1: Find and rename video to video.mp4
+    # Find and rename video to video.mp4
     print("Searching for video file...")
-    if not find_and_convert_video():
+    original_name = find_video()
+    if not original_name:
         return
+    original_name = original_name.rsplit(".", 1)[0]
 
     video_path = "video.mp4"
     audio_path = "audio.wav"
 
-    # Step 2: Extract audio
-    tracker.start_stage("Extracting audio")
+    # Extract audio
     extract_audio(video_path, audio_path)
-    tracker.finish_stage()
 
-    # Step 3: Transcribe audio
-    tracker.start_stage("Transcribing audio")
+    # Transcribe audio
     segments = transcribe_audio(audio_path)
-    tracker.finish_stage()
 
     if not segments:
         print("No transcription available.")
@@ -80,24 +79,20 @@ def main():
 
     print(f"Transcription complete. {len(segments)} segments found.")
 
-    # Step 4: Search for trigger phrases and build JSON output
+    # Search for trigger phrases and build JSON output
     matches = find_trigger_segments(segments)
     if not matches:
         print("No trigger phrases found in transcript.")
-        tracker.finish_all()
         return
 
-    # Step 5: Write results to JSON file
-    output_path = "timestamps.json"
+    # Write results to JSON file
+    output_path = f"{original_name}.json"
     with open(output_path, "w") as f:
         json.dump(matches, f, indent=4)
     print(f"\nDetected {len(matches)} voiceline(s). Saved to {output_path}")
 
-    # Step 6: Delete the original video and audio files
-    delete_file(video_path)
+    # Delete the audio file
     delete_file(audio_path)
-
-    tracker.finish_all()
 
 
 if __name__ == "__main__":
