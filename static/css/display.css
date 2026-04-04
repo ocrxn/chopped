@@ -1,31 +1,30 @@
-
+.zip-container {
+    position: fixed;
+    top: 250px;
+    right: 350px;
+    z-index: 1000;
+}
 
 .zip-btn {
-    /* Essential for sizing */
+
     display: inline-block;
-    padding: 12px 20px;
-    
-    /* Colors & Typography */
-    background-color: #333; /* Dark square look */
+    padding: 40px 100px;
+    background-color: #0040ff;
     color: white;
-    text-decoration: none; /* Removes the underline */
+    text-decoration: none;
     font-family: sans-serif;
     font-weight: bold;
-    
-    /* The "Square" look */
     border: 2px solid #000;
-    border-radius: 0px; /* Force sharp corners */
-    
-    /* Centering text */
+    border-radius: 25px;
     text-align: center;
     transition: background 0.2s ease;
 }
 
 .zip-btn:hover {
-    background-color: #555;
+    background-color: #1f0c8a;
     cursor: pointer;
 }
 
 .zip-btn:active {
-    background-color: #000;
+    background-color: #3420a6;
 }
