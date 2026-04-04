@@ -14,3 +14,12 @@ static/.DS_STORE
 /uploads/
 /clips/
 /zips/
+
+.mkv
+.mp4
+.webm
+.mov
+
+.mp3
+.wav
+.m4a
