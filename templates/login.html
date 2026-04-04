@@ -1,11 +1,10 @@
 {% extends "template.html" %}
-{% block title %}
-Login
-{% endblock %}
-      {% block extra_css %}
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-      {% endblock %}
 
+{% block title %}Login - Chopped{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
 
 {% block content %}
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -63,4 +62,4 @@ Login
       </div>
     </div>
 
-    {% endblock %}
+{% endblock %}

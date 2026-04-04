@@ -6,31 +6,32 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/template.css') }}">
       {% block extra_css %}{% endblock %}
 
-  </head>
-  <body>
-    <header id="top_header">
-      <div>
-        <nav>
-        <a href="{{ url_for('home') }}">
-            <img id="logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="Chopped AI Logo">
-          </a>
-            <ul class="menu">
-            {% if session.get("user") %}
-            <li><a href="{{ url_for('upload') }}">Upload</a></li>   
-            <li><a href="{{ url_for('profile') }}">My Profile</a></li>
-            <li><a href="{{ url_for('logout') }}">Log Out</a></li>
-            {% else %}
-            <li><a href="{{ url_for('about') }}">About</a></li>
+</head>
+<body>
+  <header id="top_header">
+    <div>
+      <nav>
+      <a href="{{ url_for('home') }}">
+          <img id="logo" src="{{ url_for('static', filename='images/logo.png') }}" alt="Chopped AI Logo">
+        </a>
+          <ul class="menu">
+          {% if session.get("user") %}
+          <li><a href="{{ url_for('upload') }}">Upload</a></li>   
+          <li><a href="{{ url_for('profile') }}">My Profile</a></li>
+          <li><a href="{{ url_for('about') }}">About</a></li>
+          <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+          {% else %}
+          <li><a href="{{ url_for('about') }}">About</a></li>
 
-            {% endif %}
-          </ul>
-        </nav>
+          {% endif %}
+        </ul>
+      </nav>
 
-      </div>
-    </header>
-    <main>
-      {% block content %} {% endblock %}
-    </main>
+    </div>
+  </header>
+  <main>
+    {% block content %} {% endblock %}
+  </main>
 
 
  </body>

@@ -1,7 +1,11 @@
 {% extends "template.html" %}
+
+{% block title %}Upload - Chopped{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
 {% endblock %}
+
 {% block content %}
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}

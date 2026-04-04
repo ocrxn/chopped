@@ -232,11 +232,6 @@ def logout():
     else:
         flash("Internal server error: unable to locate session/user.")
 
-
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
 @app.route("/delete", methods=["POST"])
 def delete():
     try:
@@ -266,6 +261,10 @@ def delete():
     except Exception as e:
         flash(f"An unknown error has occurred: {e}")
         return redirect(url_for("profile"))
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
 @app.route("/explain")
 def explain():
