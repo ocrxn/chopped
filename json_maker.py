@@ -1,6 +1,6 @@
 import os
 import json
-from json_utilities import find_video, extract_audio, transcribe_audio
+from json_utilities import extract_audio, transcribe_audio
 from config import UPLOAD_FOLDER
 
 # Map each phrase to its type and label for the JSON output
