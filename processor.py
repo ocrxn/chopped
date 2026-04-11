@@ -1,22 +1,51 @@
 #takes timestamps + labels and decides where clips start and end
-#calls clipper.py to generate all clips
-
-from clipper import clip_video
 from pathlib import Path
 import json
 import os
 import random
-#from config import BASE_DIR
+from __future__ import annotations
+import subprocess
+from pathlib import Path
+from config import BASE_DIR, CLIPS_FOLDER
 
-BASE_DIR = Path(__file__).resolve().parent
+
 #gets absolute path of current Python file and returns directory it’s located in; makes BASE_DIR a path
 #__file__ is the path to the current Python file
 #.resolve turns it into an absolute path
 #.parent gets the folder containing the file
+# BASE_DIR = Path(__file__).resolve().parent
+
+#takes video + timestamps and cuts a clip
+#uses FFmpeg
+#cuts a highlight clip from a video
+#uses FFmpeg when given a video path and timestamps
+#takes in video file path
+#takes in data from JSON file from processor.py
+#uses JSON parameters
+#uses ffmpeg to cut clips and put into folders
+
+def clip_video(video_path: str, output_path: str, start_time: int, duration: int = 35):
+    video_path = os.path.abspath(video_path)
+    output_path = os.path.abspath(output_path)
+
+    if not os.path.exists(video_path):
+        raise FileNotFoundError(f"input video not found: {video_path}")
+
+    command = [
+        "ffmpeg",
+        "-ss", str(start_time),  # start cutting at start time
+        "-i", video_path,  # input video file
+        "-t", str(duration),  # duration of the cut
+        "-c", "copy",  # copies audio and video streams without re-encoding
+        "-y",  # so ffmpeg won't stop if file already exists
+        output_path,  # output path for cut video file
+    ]
+
+    subprocess.run(command, check=True)
+    os.remove(video_path)
 
 #function to load events from .json file
 def load_events(events_file):
-
     events_file = Path(events_file)
 
     #make sure filepath for file exists
@@ -103,16 +132,17 @@ def process_video(events_file, clips_dir = "clips"):
 
 json_dir = BASE_DIR / "json"
 
-for json_file in json_dir.glob("*.json"):
-    #glob says must start with game_, * is a wildcard, and must end with .json (or whatever the filename is)
-
-    try:
-        game_clips_dir = BASE_DIR / "clips" / json_file.stem
-        process_video(json_file, clips_dir = game_clips_dir)
+def run_processor():
+    """
+    Runs the ffmpeg process to cut the clips from the video
+    """
+    for json_file in json_dir.glob("*.json"):
+        #glob says must start with game_, * is a wildcard, and must end with .json (or whatever the filename is)
+        try:
+            game_clips_dir = os.path.join(CLIPS_FOLDER, json_file.stem)
             #process_video will make a new directory within the clips folder
             #it will have the name of json_file.stem
-    except Exception as e:
-        print(f"Error processing {json_file.name}: {e}")
-    #if error happens in try block, store in variable e, and print that error as a message
-
-print("Success: check clips folder")
+            process_video(json_file, clips_dir = game_clips_dir)
+                
+        except Exception as e:
+            print(f"Error processing {json_file.name}: {e}")

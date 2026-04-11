@@ -15,6 +15,7 @@ from db_conn import Connection
 from config import UPLOAD_FOLDER, CLIPS_FOLDER, ZIP_FOLDER, init_dirs
 from file_handling import FileHandler
 from json_maker import create_json_file
+from processor import run_processor
 
 app = Flask(__name__)
 load_dotenv()
@@ -126,7 +127,7 @@ def upload():
                 create_json_file(video_upload_path,audio_upload_path,video_name_only)
 
                 #<---------Create clips--------------->
-                
+                run_processor()
                 
                 #<---------Zip clips--------------->
                 # fh.zip_clips(filename=video_filename,clips_dir=CLIPS_FOLDER,zip_dir=ZIP_FOLDER)
