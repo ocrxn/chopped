@@ -176,5 +176,5 @@ class FileHandler():
         else:
             for i,error in enumerate(errors):
                 error_string += f"Error {i+1}: {error}\n"
-        with open("error_logs.txt","w") as file:
+        with open("error_logs.txt","a") as file:
             file.write(error_string)

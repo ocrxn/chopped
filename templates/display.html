@@ -31,7 +31,7 @@
 <h3>[File Size: {{ cmpr_size or 'Original'}}] MB</h3>
 <div class="zip-container">
   <h1>Download your zip file here</h1>
-  <a href="www.google.com" class="zip-btn">Download zip</a>
+  <a href="{{ url_for('download_zip', filename=zip_name) }}" class="zip-btn">Download Zip</a>
 
 </div>
 

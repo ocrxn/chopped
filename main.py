@@ -137,7 +137,6 @@ def upload():
                 
                 #<---------Zip clips--------------->
                 fh.zip_clips(filename=video_name_only,clips_dir=CLIPS_FOLDER,zip_dir=ZIP_FOLDER)
-
                 cmpr_size = result.get("cmpr_size")
 
 
@@ -149,7 +148,10 @@ def upload():
                     os.remove(temp_vid_path)
                 if temp_audio_path and os.path.exists(temp_audio_path):
                     os.remove(temp_audio_path)
-            return redirect(url_for("display", filename=video_filename, cmpr_mode=encoding, cmpr_size=cmpr_size))
+            return redirect(url_for("display", 
+                                    filename=video_filename, 
+                                    zip_name = f"{video_name_only}.zip", 
+                                    cmpr_mode=encoding, cmpr_size=cmpr_size))
 
         except FileNotFoundError:
             flash("Error: No file uploaded")
@@ -164,11 +166,12 @@ def display(filename):
     is_logged_out = require_login()
     if is_logged_out:
         return is_logged_out
+    zip_name = request.args.get("zip_name")
     cmpr_mode = request.args.get("cmpr_mode")
     cmpr_size_long = int(request.args.get("cmpr_size")) / (1024 * 1024)
     cmpr_size = "{:.2f}".format(cmpr_size_long)
 
-    return render_template("display.html", filename=filename, cmpr_mode=cmpr_mode, cmpr_size=cmpr_size)
+    return render_template("display.html", filename=filename, zip_name=zip_name, cmpr_mode=cmpr_mode, cmpr_size=cmpr_size)
 
 
 @app.route("/get_video/<filename>")
@@ -178,7 +181,17 @@ def get_video(filename):
         flash("Error 404: File not found.")
         return redirect(url_for("home"))
 
-    return send_file(path, as_attachment=False)
+    return send_file(path, as_attachment=True)
+
+@app.route("/download_zip/<filename>")
+def download_zip(filename):
+    path = os.path.join(ZIP_FOLDER, filename)
+    
+    if not os.path.exists(path):
+        flash("Error 404: Zip file not found.")
+        return redirect(url_for("home"))
+
+    return send_file(path, as_attachment=True)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

@@ -126,7 +126,6 @@ def process_video(events_file, clips_dir = "clips"):
                  output_path=output_path
                  )
     
-     os.remove(video_path)
      os.remove(events_file)
 
 def run_processor():
