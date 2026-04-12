@@ -25,3 +25,10 @@ static/.DS_STORE
 .mp3
 .wav
 .m4a
+
+uploads/*
+!uploads/.gitkeep
+clips/*
+!clips/.gitkeep
+zips/*
+!zips/.gitkeep
