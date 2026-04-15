@@ -2,6 +2,7 @@
 todo.txt
 notes.txt
 error_logs.txt
+app.log
 *.pyc
 *.pyo
 venv/

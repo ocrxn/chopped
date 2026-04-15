@@ -2,6 +2,7 @@ import os
 import json
 from json_utilities import extract_audio, transcribe_audio
 from config import JSON_FOLDER
+import logging
 
 # Map each phrase to its type and label for the JSON output
 trigger_phrases = {
@@ -33,6 +34,8 @@ sorted_phrases = sorted(trigger_phrases.keys(), key=len, reverse=True)
 
 
 def find_trigger_segments(segments):
+    """
+    """
     matches = []
     for segment in segments:
         text_lower = segment['text'].lower()
@@ -48,15 +51,20 @@ def find_trigger_segments(segments):
 
 
 def delete_file(path):
+    """
+    Deletes the given path and logs the result
+    """
     try:
         if os.path.exists(path):
             os.remove(path)
-            print(f"Deleted {path}")
+            logging.info(f"[delete_file] Deleted {path}")
     except PermissionError:
-        print(f"Could not delete {path} — you can delete it manually.")
+        logging.error(f"[delete_file] Could not delete {path} — you can delete it manually.")
 
 
 def create_json_file(video_path,audio_path,video_name):
+    """
+    """
     # Extract audio if separate audio not provided
     if audio_path == None:
         audio_path = f"{video_name}.wav"
@@ -66,20 +74,22 @@ def create_json_file(video_path,audio_path,video_name):
     segments = transcribe_audio(audio_path)
 
     if not segments:
-        return "No transcription available."
+        logging.error("[create_json_file] No transcription available.")
+        return
 
-    print(f"Transcription complete. {len(segments)} segments found.")
+    logging.info(f"[create_json_file] Transcription complete. {len(segments)} segments found.")
 
     # Search for trigger phrases and build JSON output
     matches = find_trigger_segments(segments)
     if not matches:
-        return "No trigger phrases found in transcript."
+        logging.error("[create_json_file] No trigger phrases found in transcript.")
+        return
 
     # Write results to JSON file
     output_path = os.path.join(JSON_FOLDER, f"{video_name}.json")
     with open(output_path, "w") as f:
         json.dump(matches, f, indent=4)
-    print(f"\nDetected {len(matches)} voiceline(s). Saved to {output_path}")
+    logging.info(f"[create_json_file] Detected {len(matches)} voiceline(s). Saved to {output_path}")
 
     # Delete the audio file
     delete_file(audio_path)
