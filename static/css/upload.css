@@ -72,11 +72,12 @@
 .audio-checkbox:has(input:checked) ~ .audio-input {
     display: flex;
 }
-
-.audio-input p {
+.audio-checkbox h3,p{
+    margin: 2px 0;
+    font-weight: bold;
     font-size: 11px;
-    color: #666;
-    margin: 0 0 8px 0;
+    color: #2a2828; 
+    margin: 5px 0 0 0;
 }
 
 /* --- SHARED OPTION BOX STYLING --- */
@@ -102,6 +103,8 @@
     margin: 2px 0;
     font-weight: normal;
     font-size: 11px;
+    color: #2a2828; 
+    margin: 5px 0 0 0;
 }
 
 /* --- NEW RADIO STACK LOGIC --- */
