@@ -44,7 +44,7 @@ jobs:
           --name "${{ matrix.output_name }}"
           --add-data "templates${{ matrix.separator }}templates"
           --add-data "static${{ matrix.separator }}static"
-          app.py
+          main.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
