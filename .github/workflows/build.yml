@@ -47,6 +47,8 @@ jobs:
           --name "${{ matrix.output_name }}"
           --add-data "templates${{ matrix.separator }}templates"
           --add-data "static${{ matrix.separator }}static"
+          --hidden-import imageio
+          --collect-all imageio
           main.py
 
       - name: Upload artifact
@@ -72,4 +74,5 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          # This glob pattern grabs all files within the downloaded artifact folders
           files: dist/**/*

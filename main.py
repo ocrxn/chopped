@@ -25,7 +25,7 @@ logging.basicConfig(filename="app.log",
 
 app = Flask(__name__)
 load_dotenv()
-app.secret_key = os.getenv('app_key')
+app.secret_key = os.getenv('APP_KEY')
 
 #Upload file parameters
 app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1024 * 15 #15 GB
@@ -77,9 +77,6 @@ def upload():
 
     if request.method == "POST":
         try:
-            #Initializes directories
-            init_dirs()
-
             #Get video/audio files from website and return if empty
             video_file = request.files.get('video_upload_file')
             audio_file = request.files.get('audio_upload_file')
@@ -390,4 +387,4 @@ def shutdown():
         return redirect("https://www.google.com")
 
 if __name__ == "__main__":
-    serve(app, port=5050)
+    serve(app, port=5050, max_request_body_size=1024*1024*1024 * 15)
