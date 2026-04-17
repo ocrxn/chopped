@@ -1,4 +1,5 @@
-from flask import Flask, render_template, abort, send_file,redirect, url_for, session, request, flash, jsonify, send_from_directory
+from flask import Flask, render_template, abort, send_file, redirect, url_for, session, request, flash, jsonify, \
+    send_from_directory
 from dotenv import load_dotenv
 from email_verif import connect_smtp
 from werkzeug.utils import secure_filename
@@ -12,41 +13,55 @@ import tempfile
 import shutil
 
 from db_conn import Connection
-from config import UPLOAD_FOLDER, CLIPS_FOLDER, ZIP_FOLDER, init_dirs
+from config import UPLOAD_FOLDER, CLIPS_FOLDER, ZIP_FOLDER, JSON_FOLDER, init_dirs
 from file_handling import FileHandler
 from json_maker import create_json_file
-from processor import run_processor
+from processor import process_video
 
 app = Flask(__name__)
 load_dotenv()
 app.secret_key = os.getenv('app_key')
 
-#Upload file parameters
-app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1024 * 15 #15 GB
+# Upload file parameters
+app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024 * 15  # 15 GB
+
 
 @app.errorhandler(413)
 def max_file_size_exceeded(e):
     flash("Error 413: File size exceeded!")
     return redirect(url_for("upload"))
 
+
 def require_login():
     if "user" not in session:
         return redirect(url_for("login"))
     return None
 
-@app.route("/", methods=["GET","POST"])
+
+def cleanup_folders():
+    for folder in [UPLOAD_FOLDER, CLIPS_FOLDER, ZIP_FOLDER, JSON_FOLDER]:
+        for root, dirs, files in os.walk(folder):
+            for file in files:
+                if file != ".gitkeep":
+                    os.remove(os.path.join(root, file))
+            for dir in dirs:
+                shutil.rmtree(os.path.join(root, dir))
+
+
+@app.route("/", methods=["GET", "POST"])
 def home():
     is_logged_out = require_login()
     if is_logged_out:
         return is_logged_out
     return render_template("home.html")
 
-@app.route("/upload", methods=["GET","POST"])
+
+@app.route("/upload", methods=["GET", "POST"])
 def upload():
     is_logged_out = require_login()
     if is_logged_out:
         return is_logged_out
-    
+
     if request.method == "GET":
         file_size = app.config['MAX_CONTENT_LENGTH'] / (1024 * 1024)
         base = 'MB' if file_size < 1024 else 'GB'
@@ -58,20 +73,19 @@ def upload():
         try:
             fh = FileHandler()
 
-            #Initializes directories if not exists
-            create_dirs = init_dirs()
-            if create_dirs != None:
-                fh.error_logger(create_dirs)
+            # Initializes directories if not exists
+            init_dirs()
+            cleanup_folders()
 
-            #Get video/audio files from website and return if empty
+            # Get video/audio files from website and return if empty
             video_file = request.files.get('video_upload_file')
             audio_file = request.files.get('audio_upload_file')
+            audio_file = audio_file if audio_file and audio_file.filename != "" else None
             if not video_file or video_file.filename == "":
-                fh.error_logger("Error 404: File could not be found.")
                 flash("Error 404: File could not be found.")
                 return redirect(url_for("upload"))
 
-            #Create secure filenames, extract exts, and make paths
+            # Create secure filenames, extract exts, and make paths
             video_filename = secure_filename(video_file.filename)
             video_name_only = os.path.splitext(video_filename)[0].lower().replace(".", "")
             video_extension = os.path.splitext(video_filename)[1].lower().replace(".", "")
@@ -82,15 +96,15 @@ def upload():
             audio_extension = os.path.splitext(audio_filename)[1].lower().replace(".", "") if audio_file else None
             audio_upload_path = os.path.join(UPLOAD_FOLDER, audio_filename) if audio_file else None
 
-            #Get the type of compression encoding user selected
+            # Get the type of compression encoding user selected
             encoding = request.form.get("hardware_encode")
 
-            #Create a temporary file where video gets written
+            # Create a temporary file where video gets written
             with tempfile.NamedTemporaryFile(suffix=f".{video_extension}", delete=False) as temp_vid:
                 temp_vid_path = temp_vid.name
                 video_file.save(temp_vid_path)
                 temp_vid.flush()
-            
+
             temp_audio_path = None
             if audio_file:
                 with tempfile.NamedTemporaryFile(suffix=f".{audio_extension}", delete=False) as temp_audio:
@@ -100,22 +114,22 @@ def upload():
 
             try:
                 kwargs = {
-                        "vid_filename": video_filename,
-                        "audio_filename": audio_filename,
-                        "video_path": temp_vid_path,
-                        "audio_path": temp_audio_path,
-                        "encoding": encoding,
-                        "vid_ext": video_extension,
-                        "audio_ext": audio_extension,
-                        "output_dir": UPLOAD_FOLDER
-                    }
-                
-                #Copy audio file
+                    "vid_filename": video_filename,
+                    "audio_filename": audio_filename,
+                    "video_path": temp_vid_path,
+                    "audio_path": temp_audio_path,
+                    "encoding": encoding,
+                    "vid_ext": video_extension,
+                    "audio_ext": audio_extension,
+                    "output_dir": UPLOAD_FOLDER
+                }
+
+                # Copy audio file
                 if audio_file:
-                    shutil.move(temp_audio_path,audio_upload_path)
-                
+                    shutil.move(temp_audio_path, audio_upload_path)
+
                 result = {"status": "skipped", "cmpr_size": os.path.getsize(temp_vid_path)}
-                #Copy video file
+                # Copy video file
                 if encoding and encoding != "none":
                     # Compress the video if user selected a compression mode
                     result = fh.compress_video(kwargs)
@@ -123,23 +137,19 @@ def upload():
 
                 else:
                     # Skip compression and move video from temp to uploads
-                    shutil.move(temp_vid_path,video_upload_path) 
+                    shutil.move(temp_vid_path, video_upload_path)
 
-                #<---------Make json file--------------->
-                cjf = create_json_file(video_upload_path,audio_upload_path,video_name_only)
-                if cjf != None:
-                    fh.error_logger(cjf)
+                    # <---------Make json file--------------->
+                create_json_file(video_upload_path, audio_upload_path, video_name_only)
 
-                #<---------Create clips--------------->
-                rp = run_processor()
-                if rp != None:
-                    fh.error_logger(rp)
-                
-                #<---------Zip clips--------------->
-                fh.zip_clips(filename=video_name_only,clips_dir=CLIPS_FOLDER,zip_dir=ZIP_FOLDER)
+                # <---------Create clips--------------->
+                json_path = os.path.join(JSON_FOLDER, f"{video_name_only}.json")
+                game_clips_dir = os.path.join(CLIPS_FOLDER, video_name_only)
+                process_video(json_path, clips_dir=game_clips_dir, uploads_dir=UPLOAD_FOLDER)
 
+                # <---------Zip clips--------------->
+                fh.zip_clips(filename=video_name_only, clips_dir=game_clips_dir, zip_dir=ZIP_FOLDER)
                 cmpr_size = result.get("cmpr_size")
-
 
             except Exception as e:
                 flash(f"An error has occurred: {e}")
@@ -149,26 +159,24 @@ def upload():
                     os.remove(temp_vid_path)
                 if temp_audio_path and os.path.exists(temp_audio_path):
                     os.remove(temp_audio_path)
-            return redirect(url_for("display", filename=video_filename, cmpr_mode=encoding, cmpr_size=cmpr_size))
+
+            return redirect(url_for("display", filename=video_name_only))
 
         except FileNotFoundError:
             flash("Error: No file uploaded")
             return redirect(url_for('upload'))
-        
+
         except Exception as e:
             flash(f"Exception has occurred: {e}")
             return redirect(url_for('upload'))
+
 
 @app.route("/display/<filename>")
 def display(filename):
     is_logged_out = require_login()
     if is_logged_out:
         return is_logged_out
-    cmpr_mode = request.args.get("cmpr_mode")
-    cmpr_size_long = int(request.args.get("cmpr_size")) / (1024 * 1024)
-    cmpr_size = "{:.2f}".format(cmpr_size_long)
-
-    return render_template("display.html", filename=filename, cmpr_mode=cmpr_mode, cmpr_size=cmpr_size)
+    return render_template("display.html", filename=filename)
 
 
 @app.route("/get_video/<filename>")
@@ -178,36 +186,49 @@ def get_video(filename):
         flash("Error 404: File not found.")
         return redirect(url_for("home"))
 
-    return send_file(path, as_attachment=False)
+    return send_file(path, as_attachment=True)
+
+
+@app.route("/download_zip/<filename>")
+def download_zip(filename):
+    path = os.path.join(ZIP_FOLDER, f"{filename}.zip")
+
+    if not os.path.exists(path):
+        flash("Error 404: Zip file not found.")
+        return redirect(url_for("home"))
+
+    return send_file(path, as_attachment=True)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
         return render_template("login.html")
-    
+
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
 
-        #Call to db_conn.py to validate credentials
+        # Call to db_conn.py to validate credentials
         cn = Connection()
         if cn.confirm_user(username, password):
-            #Store user in session
+            # Store user in session
             session["user"] = username
 
-            #Set user status active in DB
-            cn.update_status("UPDATE public.users SET is_active=TRUE WHERE username=%s",username)
-            
+            # Set user status active in DB
+            cn.update_status("UPDATE public.users SET is_active=TRUE WHERE username=%s", username)
+
             return redirect(url_for("home"))
-        
+
         flash("Invalid username or password. Please try again.")
         return redirect(url_for("login"))
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "GET":
         return render_template("signup.html")
-    
+
     if request.method == "POST":
         username = request.form["username"]
         email = request.form["email"]
@@ -215,23 +236,23 @@ def signup():
 
         cn = Connection()
 
-        #Check if user already exists
+        # Check if user already exists
         if cn.confirm_user(username, password):
             flash("User already exists. Try logging in.")
             return redirect(url_for("login"))
-        
-        #Create new user in DB if not exists
+
+        # Create new user in DB if not exists
         if cn.create_user(username, email, password):
             session["user"] = username
 
-            #Set user status active in DB
-            cn.update_status("UPDATE public.users SET is_active=TRUE WHERE username=%s",username)
+            # Set user status active in DB
+            cn.update_status("UPDATE public.users SET is_active=TRUE WHERE username=%s", username)
 
-        #!!!!Temporarily disabled to prevent backend complications  #TODO
-            #Send 2FA code to user email for verification
-            #See email_verify.py for implementation
+            # !!!!Temporarily disabled to prevent backend complications  #TODO
+            # Send 2FA code to user email for verification
+            # See email_verify.py for implementation
             # connect_smtp(username, email)
-            
+
             return redirect(url_for("home"))
 
 
@@ -241,16 +262,16 @@ def logout():
     if username:
         session.pop("user", None)
 
-        #Set user status not active in DB
+        # Set user status not active in DB
         cn = Connection()
-        cn.update_status("UPDATE public.users SET is_active=FALSE WHERE username=%s",username)
+        cn.update_status("UPDATE public.users SET is_active=FALSE WHERE username=%s", username)
 
         return redirect(url_for("login"))
     else:
         flash("Internal server error: unable to locate session/user.")
 
 
-@app.route("/profile", methods=["GET","POST"])
+@app.route("/profile", methods=["GET", "POST"])
 def profile():
     is_logged_out = require_login()
     if is_logged_out:
@@ -264,7 +285,7 @@ def delete():
         is_logged_out = require_login()
         if is_logged_out:
             return is_logged_out
-        
+
         if request.method == "POST":
             del_username = request.form["del-username"]
             del_password = request.form["del-password"]
@@ -308,7 +329,7 @@ def shutdown():
         print(f"Flask server not using werkzeug. Shutting down using SIGINT...")
         os.kill(os.getpid(), signal.SIGINT)
         return redirect("https://www.google.com")
-    else:  
+    else:
         shutdown_server()
         return redirect("https://www.google.com")
 
