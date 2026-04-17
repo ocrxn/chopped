@@ -35,6 +35,7 @@ sorted_phrases = sorted(trigger_phrases.keys(), key=len, reverse=True)
 
 def find_trigger_segments(segments):
     """
+    Parses segments into array of type, timestamp, and label
     """
     matches = []
     for segment in segments:
@@ -64,6 +65,7 @@ def delete_file(path):
 
 def create_json_file(video_path,audio_path,video_name):
     """
+    Uses transcribe audio to create a json file of plays in a video
     """
     # Extract audio if separate audio not provided
     if audio_path == None:
@@ -89,6 +91,7 @@ def create_json_file(video_path,audio_path,video_name):
     output_path = os.path.join(JSON_FOLDER, f"{video_name}.json")
     with open(output_path, "w") as f:
         json.dump(matches, f, indent=4)
+        
     logging.info(f"[create_json_file] Detected {len(matches)} voiceline(s). Saved to {output_path}")
 
     # Delete the audio file

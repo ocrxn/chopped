@@ -14,7 +14,7 @@ import logging
 
 from db_conn import Connection
 from config import UPLOAD_FOLDER, CLIPS_FOLDER, ZIP_FOLDER
-from file_handling import compress_video, zip_clips, init_dirs
+from file_handling import compress_video, zip_clips
 from json_maker import create_json_file
 from processor import run_processor
 

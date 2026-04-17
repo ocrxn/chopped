@@ -13,11 +13,6 @@ else:
 # Neon DB
 DB_URL = os.getenv('DATABASE_URL')
 
-# Gmail
-MAIL_TOKEN = os.getenv('mail_token')
-SENDER_EMAIL = os.getenv('sender_email')
-EMAIL_PORT = os.getenv('email_port')
-
 # Uploads & output
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 JSON_FOLDER = os.path.join(BASE_DIR, "json")

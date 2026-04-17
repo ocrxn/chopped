@@ -3,6 +3,7 @@ from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from config import *
 import bcrypt
+import logging
 
 load_dotenv()
 
@@ -22,9 +23,11 @@ class Connection:
             exe.execute(query,(username,))
             conn.commit()
         except psycopg2.Error as error:
-            print(f"update_status error has occurred: {error}")
+            logging.error(f"[update_status] Error has occurred: {error}")
+            return
         except Exception as e:
-            print(f"update_status exception has occurred: {e}")
+            logging.error(f"[update_status] Exception has occurred: {e}")
+            return
         finally:
             exe.close()
             conn.close()
@@ -38,10 +41,10 @@ class Connection:
             exe.execute("INSERT INTO users (username,email,password) VALUES (%s,%s,%s)", (username, email,hashed_pass))
             conn.commit()
         except psycopg2.Error as error:
-            print(f"An error has occurred. {error}")
+            logging.error(f"[create_user] Error has occurred: {error}")
             return False
         except Exception as e:
-            print(f"Create User Exception has occurred: {e}")
+            logging.error(f"[create_user] Exception has occurred: {e}")
             return False
         finally:
             exe.close()
@@ -65,9 +68,11 @@ class Connection:
                 return True
             return False        
         except psycopg2.Error as error:
-            print("An error has occurred: {error}")
+            logging.error(f"[confirm_user] An error has occurred: {error}")
+            return
         except Exception as e:
-            print(f"Confirm User Exception has occurred: {e}")
+            logging.error(f"[confirm_user] Exception has occurred: {e}")
+            return
         finally:
             exe.close()
             conn.close()
@@ -83,9 +88,9 @@ class Connection:
             return False
 
         except psycopg2.Error as error:
-            print("An error has occurred: {error}")
+            logging.error(f"[delete_user] An error has occurred: {error}")
         except Exception as e:
-            print(f"Confirm User Exception has occurred: {e}")
+            logging.error(f"[delete_user] Exception has occurred: {e}")
         finally:
             exe.close()
             conn.close()
@@ -99,11 +104,11 @@ class Connection:
             exe.execute(query)
             conn.commit()
         except psycopg2.Error as error:
-            print(f"An:1 error has occurred: {error}")
+            logging.error(f"[query_db] An error has occurred: {error}")
         except Exception as e:
-            print(f"Exception has occurred: {e}")
+            logging.error(f"[query_db] Exception has occurred: {e}")
         finally:
-            print("Query successfully completed.")
+            logging.info("[query_db] Query successfully completed")
             exe.close()
             conn.close()
 
