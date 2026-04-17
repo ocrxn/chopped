@@ -1,8 +1,21 @@
 import os
 import sys
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
+
+if hasattr(sys, '_MEIPASS'):
+    env_path = os.path.join(sys._MEIPASS, '.env')
+    logging.info(f"Looking for .env at: {env_path}")
+    logging.info(f".env exists: {os.path.exists(env_path)}")
+    load_dotenv(env_path)
+else:
+    load_dotenv()
+
+logging.info(f"DATABASE_URL loaded: {bool(os.getenv('DATABASE_URL'))}")
+logging.info(f"APP_KEY loaded: {bool(os.getenv('APP_KEY'))}")
+
 
 # Base directory
 if hasattr(sys, '_MEIPASS'):
