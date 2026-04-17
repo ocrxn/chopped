@@ -1,27 +1,28 @@
 import os
+import sys
 from dotenv import load_dotenv
 
 load_dotenv()
 
-#Localhost
-HOST = os.getenv('HOST_TOKEN')
-PORT = os.getenv('PORT_TOKEN')
-USER = os.getenv('USER_TOKEN')
-PASSWORD = os.getenv('PASSWORD_TOKEN')
-DATABASE = os.getenv('DB_TOKEN')
+# Base directory
+if hasattr(sys, '_MEIPASS'):
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-#Neon DB
+# Neon DB
 DB_URL = os.getenv('DATABASE_URL')
 
-#Gmail
+# Gmail
 MAIL_TOKEN = os.getenv('mail_token')
 SENDER_EMAIL = os.getenv('sender_email')
 EMAIL_PORT = os.getenv('email_port')
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Uploads & output
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+JSON_FOLDER = os.path.join(BASE_DIR, "json")
+CLIPS_FOLDER = os.path.join(BASE_DIR, "clips")
+ZIP_FOLDER = os.path.join(BASE_DIR, "zips")
 
-#Uploads & output
-UPLOAD_FOLDER = os.path.join(BASE_DIR, os.getenv('upload_folder'))
-JSON_FOLDER = os.path.join(BASE_DIR, os.getenv('json_folder'))
-CLIPS_FOLDER = os.path.join(BASE_DIR, os.getenv('clips_folder'))
-ZIP_FOLDER = os.path.join(BASE_DIR, os.getenv('zip_folder'))
+for folder in [UPLOAD_FOLDER, JSON_FOLDER, CLIPS_FOLDER, ZIP_FOLDER]:
+    os.makedirs(folder, exist_ok=True)

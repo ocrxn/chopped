@@ -7,24 +7,6 @@ import shutil
 import zipfile
 import logging
 from config import *
-
-def init_dirs():
-    """
-    Creates the following if they do not exist: UPLOAD_FOLDER, JSON_FOLDER, CLIPS_FOLDER, ZIP FOLDER
-    """
-    try:
-        if not os.path.exists(UPLOAD_FOLDER):
-            os.mkdir(UPLOAD_FOLDER)
-        if not os.path.exists(JSON_FOLDER):
-            os.mkdir(JSON_FOLDER)
-        if not os.path.exists(CLIPS_FOLDER):
-            os.mkdir(CLIPS_FOLDER)
-        if not os.path.exists(ZIP_FOLDER):
-            os.mkdir(ZIP_FOLDER)
-        logging.info("[init_dirs] Initialized necesary directories")
-    except Exception as e:
-        logging.error(f"[init_dirs] Exception in init_dirs: {e}")
-        return f"Exception in init_dirs: {e}"
     
 def detect_hardware_encoder():
     """
