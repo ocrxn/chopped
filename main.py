@@ -1,4 +1,4 @@
-from flask import Flask, render_template, abort, send_file,redirect, url_for, session, request, flash, jsonify, send_from_directory
+from flask import Flask, render_template, abort, send_file, redirect, url_for, session, request, flash, jsonify, send_from_directory
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from waitress import serve
@@ -12,23 +12,21 @@ import tempfile
 import shutil
 import logging
 
-from db_conn import Connection
-from config import UPLOAD_FOLDER, CLIPS_FOLDER, ZIP_FOLDER
-from file_handling import compress_video, zip_clips
-from json_maker import create_json_file
-from processor import run_processor
-
-#Define basic log settings for entire app
 logging.basicConfig(filename="app.log",
                     level=logging.DEBUG,
                     format="%(asctime)s - %(levelname)s - %(message)s")
 
+from db_conn import Connection
+from config import UPLOAD_FOLDER, CLIPS_FOLDER, ZIP_FOLDER, APP_KEY
+from file_handling import compress_video, zip_clips
+from json_maker import create_json_file
+from processor import run_processor
+
 app = Flask(__name__)
 load_dotenv()
-app.secret_key = os.getenv('APP_KEY')
+app.secret_key = APP_KEY
 
-#Upload file parameters
-app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1024 * 15 #15 GB
+app.config['MAX_CONTENT_LENGTH'] = 1024*1024 * 1024 * 15
 
 @app.errorhandler(413)
 def max_file_size_exceeded():
