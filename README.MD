@@ -53,14 +53,14 @@
 
 `sudo apt install ffmpeg`
 ## 3. Clone into master branch
-`git clone "https://github.com/ocrxn/chopped-ai"`
+`git clone "https://github.com/ocrxn/chopped"`
 
-`cd ./chopped-ai`
+`cd ./chopped`
 ## 4. VENV
 `python3 -m venv venv`
 ### Verify python is installed in venv
 `which python`
-### should say something like "chopped-ai/venv/bin/python"
+### should say something like "chopped/venv/bin/python"
 ### Activate VENV
 ### For Mac/Linux
 `source venv/bin/activate`
